@@ -471,7 +471,7 @@ FUNCTION {format.names}
               name.lang lang.en =
                 { t #1 "{vv~}{ll}{~f{~}}" format.name$
                   uppercase.name
-                    { "u" change.case$ }
+                    { }
                     'skip$
                   if$
                   t #1 "{, jj}" format.name$ *

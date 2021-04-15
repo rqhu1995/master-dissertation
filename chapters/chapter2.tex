@@ -1,247 +1,248 @@
-\chapter{论文的初始化}
+\chapter{背景知识}
 \label{chp:initialization}
 
-在开始撰写学位论文之前，我们建议你首先对你论文的基本信息进行初始化。这部分的工作在main.tex文件中完成。接下来我们将详细介绍各部分的填写方法。注意，下列所有源代码中尖括号{\codefont <...>}里的内容代表你需要填写的文本。
-
-\section{元数据}
-
-元数据部分控制你论文A3封面和中文彩色封面左上角的论文元信息的显示，除固定的学校代码外分为4个部分。下面我们将逐一解释每个部分的填写规则。
-
-\subsection{分类号}
-
-分类号指代中国图书馆分类法 (CLC, Chinese Library Classification)对图书资料的分类编码，请根据你学术论文的内容与分类酌情填写。
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\categorynumber{<CLC Code>}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 举例来说，\textbf{网络安全}的中图法分类号为TN915.08，而\textbf{建筑水利工程}的分类号为F407.9。如对自己研究内容的具体分类不甚确定，可以参阅\href{https://www.clcindex.com/}{相关网站}。
-
-\subsection{UDC}
-
-UDC(Universal Decimal Classification)指通用十进制分类法，是国际上规模最大影响最广泛的文献资料分类法。在此部分你需要填写学术论文所属的十进制分类编码。
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\UDC{<UDC Code>}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 举例来说，\textbf{人工智能}的UDC分类号为004.8，而\textbf{凝聚态固态物理学}的分类号为538.9。如对自己研究内容的具体分类不甚确定，可以参阅\href{http://www.udcsummary.info/php/index.php?lang=chi}{相关网站}。
-
-\subsection{保密级别}
-
-在此部分你需要指定你的学术论文所属的保密级别。
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\secretlevel{<Secret Level>}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 一般的，学位论文的保密级别分为公开、内部、秘密和机密四级。具体区别在于：
-
-\begin{itemize}
-  \item \textbf{公开}：未涉及国家保密范围以及未准备申请专利权或技术转让的一般学术研究；
-  \item \textbf{内部}：未涉及国家保密范围但准备申请专利权或技术转让的在一段时间内不适宜公开的学术研究；
-  \item \textbf{秘密与机密}：涉及国家保密特定密级的科研项目或课题及其衍生的学术研究。
-\end{itemize}
-
-\noindent 请根据你的论文的具体情况酌情填写。
-
-\subsection{学号}
-
-在此部分你需要填写你的研究生学号。
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\studentid{<Student ID>}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 东南大学的研究生学号一般为6位数字，请注意不要与9位的一卡通号混淆。也请学号为8位数字的本科生同学关闭本文档，出门左转GitHub寻找适合本科生的论文模板。
-
-\section{论文标题与书脊}
-
-\subsection{中英文标题}
-
-论文标题部分控制你论文的A3封面、中文彩色封面、中文内页封面和英文封面上的标题显示。
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\title
-    {弯扭耦合下土木工程复合材料梁的变分渐近模型}
-    {}
-    {Variational Asymptotic Model of Composite Beams Used in Civil Engineering under Bending and Torsion Coupling}
-    {}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 对论文标题的指定分为4个部分，自上而下分别是中文主标题，中文副标题，英文主标题和英文副标题。对于大多数没有副标题的学位论文，中英文副标题部分可以留空，但请务必不要删去相应的括号。有些论文的中英文标题可能过长，这时你也可以使用副标题位置来实现更加灵活自主的换行。比如上面的示例可以改写成：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\title
-    {弯扭耦合下土木工程复合材料梁}
-    {的变分渐近模型}
-    {Variational Asymptotic Model of Composite Beams Used in Civil}
-    {Engineering under Bending and Torsion Coupling}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 当你把主标题的后半部分拆分并写到副标题中时，\LaTeX 编译引擎会尝试在你拆分的位置换行。但想要做到这一点需要耐心调整拆分位置，否则如果你的上半部分仍然过长，编译时会被拆分成三行。
-
-\subsection{论文书脊}
-
-论文书脊指出现在A3封面垂直中间部分的文章标题及作者姓名，在论文装订时将被作为书册的书脊。对于大多数学术论文，作者不需要特地显式地声明书脊部分，本模板将会直接利用你的中文标题生成书脊。但如果你的中文标题中出现了英文或其他语言的拉丁字母，直接使用标题生成书脊将会出现图 \ref{fig:2_1} 所显示的问题：
-
-\begin{figure}[!h]
-  \centering
-    \begin{minipage}[t]{0.3\textwidth}
-    \centering
-    \includegraphics[width=.3\linewidth]{figures/content/2_1}
-    \caption{错误的书脊渲染}
-    \label{fig:2_1}
-    \end{minipage}
-    \begin{minipage}[t]{0.3\textwidth}
-    \centering
-    \includegraphics[width=.3\linewidth]{figures/content/2_2}
-    \caption{西文旋转后的书脊渲染}
-    \label{fig:2_2}
-    \end{minipage}
-    \begin{minipage}[t]{0.3\textwidth}
-    \centering
-    \includegraphics[width=.3\linewidth]{figures/content/2_3}
-    \caption{提升基线后的书脊渲染}
-    \label{fig:2_3}
-    \end{minipage}
-\end{figure}
-
-\noindent 这时你必须显式地指定书脊的渲染方式。指定的方式很简单，你只需告知编译引擎对标题中的西文字母进行逆时针270$^{\circ}$（即顺时针90$^{\circ}$）旋转即可：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\spine
-    {面向种群的 \rotatebox{270}{Android} 安全风险评估和恶意应用检测}
-    {}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 请注意，{\codefont $\backslash$rotatebox\{270\}\{\}}前后应该各留一个空格，否则会导致编译错误。和论文标题类似，没有副标题时上述第2个字段可以留空。这样修正后的书脊渲染如图 \ref{fig:2_2} 所示。尽管如此，你仍然能从图 \ref{fig:2_2} 中注意到一些异常。拉丁字母在旋转之后的基线高度比汉字基线高度略低，因此导致书脊中的西文部分看起来总是偏左。解决这一问题，你可以在旋转命令中嵌套基线提升命令，就像这样：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\spine
-  {面向种群的 \rotatebox{270}{\raisebox{2.5pt}{Android}} 安全风险评估和恶意应用检测}
-  {}
-\end{lstlisting}
-\end{tcolorbox}
-
-再次修正后的书脊渲染如图 \ref{fig:2_3} 所示，这时你就得到了完美的中西文混排书脊。再次强调，如果你的论文标题中没有中西文混排，请直接删去{\codefont $\backslash$spine}字段。
-
-\section{作者与导师}
-
-该部分用于指定论文的作者与导师姓名。作者字段分为2个部分，分别是作者的中文名及其拉丁文转写：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\author
-    {陈仁营}
-    {CHEN Ren-ying}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 关于中文姓名转写为英文时的拼写规则，根据《东南大学研究生学位论文格式规定》\cite{seugs2015rule}第一条第二款之要求，有如下规定：
-
-~
-
-\noindent{\color{black!45}
-中国姓名译为英文时用汉语拼音，按照姓前名后的原则，姓、名均用全名，不宜用缩写。姓全用大写，名的第一个字母大写，名为双中文字时两个字的拼音之间可以不用短划线，但容易引起歧义时必须用短划线。例如“冯长根”译为“FENG Changgen”或“FENG Chang-gen”，而“冯长安”则必须译为“FENG Chang-an”。论文英文封面上的署名也遵守此规定。}
-
-~
-
-导师字段分为3个部分，分别是导师的中文名、姓名的拉丁文转写以及导师的英文职称，用于显示在英文封面上：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\advisor
-    {张广军}
-    {ZHANG Guang-Jun}
-    {Prof.}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 对于硕士研究生和博士研究生，导师的职称一般为副教授级及以上。导师为副教授的，职称可以写全称 Associate Professor，也可以写简称 A. Prof.；导师为教授的，可以写全称 Professor或简称Prof.，注意上述简称中的~.不可省略。对于导师职称未达副教授级的特殊情况，比如导师职称为讲师时，请勿在职称处填写Lecturer，此时宜填写Doctor或Dr.以示尊重。
-
-一些硕士研究生可能会有副导师，此时可以显式指定副导师的相关信息，具体方法和导师相同：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\coadvisor
-    {程光}
-    {CHENG Guang}
-    {Prof.}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 没有副导师的研究生学位论文，请删去上述几行。
-
-\section{答辩信息}
-
-答辩信息用于在论文A3封面和中文彩色封面中渲染与研究生论文答辩相关的信息。
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\degreetype{工学硕士}{Master of Engineering}
-\major{生物医学工程}
-\submajor{神经信息工程}
-\defenddate{2020年1月20日}
-\authorizedate{2020年1月23日}
-\committeechair{齐康}
-\reviewer{王建国}{韩冬青}
-\department{网络空间安全学院}{School of Cyberspace Security}
-\seuthesisthanks{本文的部分工作受国家自然基金 No. wdnmd666 的支持与帮助，在此表示感谢。}
-\end{lstlisting}
-\end{tcolorbox}
-
-其中，{\codefont degreetype}字段用于指定所申请的学位类型与等级。{\codefont major}和{\codefont submajor}字段用于指定研究生攻读的一级和二级学科名称，请依照中华人民共和国教育部一级和二级学科名录进行填写。如果所属专业直接隶属于一级学科，{\codefont submajor}字段可以留空不填。{\codefont defenddate}和{\codefont authorizedate}分别用于指定论文的答辩日期和学位的授予日期，请根据实际情况填写。{\codefont committeechair}和{\codefont reviewer}用于指定论文的答辩委员会主席和论文评阅人。根据《东南大学研究生学位论文格式规定》\cite{seugs2015rule}第二条第一款之要求，有如下规定：
-
-~
-
-\noindent{\color{black!45}
-论文印刷时尚无法填写的评阅人和答辩委员会主席等栏目待答辩完成后要填写补齐，不要空缺。盲审论文的评阅人处标明“盲审”。}
-
-~
-
-{\codefont department}字段用于指定研究生所属的院系，其中院系的英文名将用于英文封面的生成。学院的正确英文译名请查阅所属学院的官方网站。{\codefont seuthesisthanks}用于在论文的中文内页页脚处对论文所属的项目、赞助的基金课题进行简短的鸣谢。此处不宜书写大段文字，请用简单的一两句话对相关组织或机构表示感谢，对其他个人的感谢请在文尾的致谢部分进行。没有相关赞助的学位论文请直接删去该字段。
-
-\section{模板参数}
-
-你有可能已经注意到了在main.tex文件中引入模板类的命令里包含了若干模板参数：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\documentclass[algorithmlist,figurelist,tablelist,nomlist]{seumasterthesis}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 即{\codefont documentclass}命令后的中括号里的几个参数。这些参数用于控制条件编译以及在论文渲染时向模板类提供额外的信息。本节将会介绍本模板提供的模板参数及其具体含义。
-
-\subsection{链接着色}
-
-本模板通过使用hyperref宏包来提供索引和链接跳转功能。相信你已经注意到了，本模板所渲染出的PDF文档中的所有图片、表格、公式、算法和参考文献索引都被着色高亮，且可以通过点击跳转到原引位置。该功能便于读者在阅读电子文档时快速定位相应索引的位置，但是着色高亮的链接在论文付梓时可能会影响到印刷效果。因此，本模板提供了针对链接着色的模板参数。通过在模板参数列表中添加{\codefont nocolorlinks}参数，模板所渲染出的PDF文档中的所有文献索引都将被取消着色，以便论文的正式印刷。
-
-\subsection{图表、算法及术语目录}
-
-根据不同院系和专业的具体情况，硕士研究生学位论文可能并不需要图表、算法或术语目录中的一项或多项。尽管本模板默认会渲染出上述的所有目录，但是我们也提供了相应的模板参数来灵活控制这些目录的渲染。如果你在模板参数列表中显式指定{\codefont figurelist}，代表你希望在论文编译时在章节目录后添加图片目录；类似的，{\codefont tablelist}显式指定了表格目录的需求，{\codefont nomlist}指定了术语表，而{\codefont algorithmlist}指定了算法目录。需要注意的是，你并不需要关注这几个模板参数在参数表中的位置或顺序，具体目录的编译和渲染仍然会依照《东南大学研究生学位论文格式规定》\cite{seugs2015rule}第一条中所规定的顺序进行。
-
-\subsection{硕士类型}
-
-本模板同时支持学术型硕士研究生和专业型硕士研究生。当不添加任何模板参数时，该模板将默认渲染为学术型硕士研究生学位论文；而当在模板参数列表中显式指定{\codefont engineer}时，该模板将渲染为专业型硕士研究生学位论文。专业型与学术型硕士研究生学位论文的区别主要在于以下三点：
-\begin{enumerate}
-    \item A3 大封面和中文彩色封面的\textbf{标题}。学术型硕士为《硕士学位论文》，专业型硕士为《工程硕士学位论文》。需要注意的是，中文内页封面的标题在两种类型的硕士研究生学位论文中均为《硕士学位论文》。
-    \item A3 大封面和中文彩色封面的\textbf{学位论文形式}。专业型硕士研究生需要注明学位论文的研究形式，如应用研究、基础研究或综合研究。因此专业型硕士研究生需要填写main.tex文件中的{\codefont engthesistype}字段，学术型硕士研究生则可以忽略该字段。
-    \item A3 大封面和中文彩色封面的\textbf{学科名称}。学术型硕士研究生学位论文需要在答辩信息列表中填写一级和二级学科名称，而专业型硕士研究生需要填写的则是工程领域名称和研究方向。因此专业型硕士研究生需要在main.tex文件的{\codefont major}字段填写自己的工程领域名称，在{\codefont submajor}字段填写自己的研究方向。
+回答集编程（Answer Set Programming，ASP）是一种声明型的编程语言，主要面向复杂的搜索问题求解。ASP程序非单调推理能力较强，因此在知识密集型应用中被广泛使用。从语法上来看，ASP程序由若干条规则组成，求解问题的推理结果不受程序中规则存放的先后顺序以及规则体中谓词存放顺序的影响，作为声明型的编程方法，ASP程序不仅表示直观、符合人们自然表达的习惯，而且可扩展性较强。从语义上来看，ASP程序以回答集语义为基础，适用于常识推理和问题建模。回答集语义的理论基础是1988年Lifschitz和Gelfond提出的经典逻辑程序的稳定模型语义（Stable Model Semantics）\cite{1992The}，随后他们在该模型语义的基础上进一步扩展，推广到包含弱否定（Weak Negation）和强否定（Strong Negation）的析取逻辑程序语言中，并将稳定模型语义改名为回答集语义。在应用上来看，ASP语言简洁并且表达能力强，已经广泛应用于多种场景中，包括规划诊断\cite{2002Answer}、偏好处理\cite{2003A}、生物医学网络推理\cite{2006Modelling}等领域。
+
+本节将分别介绍ASP程序的语法、ASP程序的语义和相关的ASP求解器。
+\section{ASP程序的语法}
+项（terms）是ASP中最基本的元素，项可以是变量、常量或函数。变量是以大写字母为开头的字符串（如Human、Animal）。常量是符号常量或者数字（如25、c）。函数通常包含函数符号和若干参数，其形式为$f(t_{1},...,t_n )$，函数中的参数也是项。若项中不存在函数符号与变量，则称该项为实例化项，否则称该项为非实例化项。
+
+原子（atom）包括谓词和项，例如$p(t_1,...,t_n )$，$p$为该$n$元谓词的符号，$t_{1},...,t_n$ $(n \geq 0)$为项，$n$为0时谓词后面的括号可以省略。原子可以表示不同项之间的关系。例如：$bird(dove)$、$friend(tom, jerry)$、$today\_rain$，分别表示鸽子是鸟、tom和jerry是朋友以及今天下雨。如果原子中的每一项都是实例化的，则该原子是实例化原子，否则，该原子是非实例化的原子。例如，$bird(dove)$是实例化原子，$friend(X,tom)$是非实例化原子。
+
+文字（literal）可以是原子$p(t_{1},...,t_n )$，也可以是原子的否定形式$\neg p(t_{1},...,t_n )$。正文字（positive literal）形如$p(t_{1},...,t_n )$，负文字（negative literal）形如$\neg p(t_{1},...,t_n )$。若文字对应的原子是实例化的，则称该文字是实例化的。
+\begin{definition}[规则]规则r是具有如下形式的式子：
+    \begin{align}
+        \label{rule:1}
+        r: l_0\ or\ ... or\ l_m\leftarrow l_{m+1}, ..., l_n, not\ l_{n+1}, ..., not\ l_p.
+    \end{align}
+\end{definition}
+其中$p > n > m \geq 0$，$l_i$代表文字（literal），$not$代表新的逻辑连接符，通常称作缺省否定（default negation）或者失败即否定（Negation As Failure，NAF），又叫做弱否定，$not \ l_i$被读作“没有理由相信$l_i$为真”，但是这并不说明$l_i$为假。规则$r$读作“如果相信$l_{m+1}, ..., l_n$为真，并且没有理由相信$l_{n+1}, ..., l_p$为真，则相信$l_0\ or\ ... or\ l_m$为真”。
+
+规则$r$左侧的文字是规则的头部，可以表示为$head(r)=\{l_0,...,l_m\}$。规则$r$右侧的文字是规则的体部，可以表示为$body(r)=\{l_{m+1}, ..., l_n,not \ l_{n+1},...,not \ l_p \}$,规则的体部可以细分为正体部与负体部，正体部表示为$body^+(r)=\{l_{m+1}, ..., l_n\}$，负体部表示为$body^-(r)=\{l_{n+1}, ..., l_p \}$。规则r可以表示为：
+\begin{align}
+    \label{rule:2}
+    r: head(r)\leftarrow body^+(r) , \ not \ body^-(r).
+\end{align}
+一个ASP程序是有限条\eqref{rule:1}所示的规则组成的集合。
+
+根据规则的头部和体部的不同，规则具有不同的含义，具体分类如下：
+\begin{enumerate}[label=(\arabic*),topsep=0pt]
+    \setlength\itemsep{-0.3em}
+    \item 事实（Fact）：$ head(r) \neq \emptyset \ ,body(r) = \emptyset .$
+    \item 约束（Constraint）：$ head(r) = \emptyset \ ,body(r) \neq \emptyset .$
 \end{enumerate}
+
+根据公式\eqref{rule:1}，规则可以分为正规规则、缺省规则和严格规则。
+\begin{definition}[正规规则]当规则r中$|head(r) \ |\ =1$时,规则被称为正规规则。
+\end{definition}
+\begin{definition}[缺省规则]当规则r中$body(r)^- \neq \emptyset$时,规则被称为缺省规则。
+\end{definition}
+\begin{definition}[严格规则]当规则r中$body(r)^- = \emptyset$时,规则被称为严格规则。
+\end{definition}
+除了\eqref{rule:1}所示的规则表现形式外，还出现了选择规则（choice rule），它的表示形式如下：
+\begin{align}
+    \label{rule:3}
+    a \{p(X):q(X)\} b \leftarrow body(r) .
+\end{align}
+式子中的$a$，$b$是非负整数，可以省略不写。选择规则表示，当规则的体部满足时，可以得到集合$S$，且$a \leq |S| \leq b$,S中的元素形如$p(t)$。
+
+
+\begin{definition}[外部函数]使用脚本语言LUA或者Python时，gringo可以通过调用外部的LUA、Python的函数来丰富输入的语言，格式是在调用的函数前加@号，在本文中，本文假定所有的外部函数都具有确定性，即当一个函数在相同的参数下被调用多次时，他会返回相同的值；如果外部函数在执行时发生错误，程序会打印警告并删除当前实例的规则或条件。
+\begin{example}
+假设$distance(x_1,y_1,x_2,y_2)$函数是python函数，功能是求两个坐标之间的欧几里得距离，该函数的实现形式如下：
+
+\begin{tcolorbox}
+\setmonofont{Source Code Pro} % I don't have Consolas
+\begin{minted}{python}
+import clingo
+def distance(x_1, y_1, x_2, y_2):
+    x = (x_1 - x_2) ** 2
+    y = (y_1 - y_2) ** 2
+    ans = (x + y) ** 0.5
+    return ans
+\end{minted}
+\end{tcolorbox}
+
+该函数可以用于以下回答集程序：
+
+$ r_1: \ s(2,5).$
+
+$ r_2: \ t(5,9)$
+
+$ r_3: \ ok(X_1,Y_1,X_2,Y_2) \leftarrow \  @distance(X_1,Y_1,X_2,Y_2)\ < \ 10\ , \ s(X_1,Y_1), \ t(X_2,Y_2).$
+
+上述例子中调用了外部函数$distance$计算$s$与$t$之间的欧几里得距离，经过$distance$计算后得到距离为5，小于10，因此满足规则$r_3$。
+\end{example}
+\end{definition}
+\section{ASP程序的语义}
+\subsection{程序的解释和可满足性}
+\begin{definition}[基础逻辑程序]基础逻辑程序$P$是若干规则组成的集合，如下所示：
+    $P \ = \ \{r_1,r_2,...,r_n \ | \ n \ > \ 0\}$
+    在基础逻辑程序的研究领域内，不仅涉及程序、规则和文字，还涉及$Herbrand$基、$Herbrand$域和程序的模型与解释等概念。因此，本文也就依次介绍这些概念。
+\end{definition}
+\begin{definition}[Herbrand域H]使用$P$代表逻辑程序，将程序$P$中出现的常量和函数形成的所有基项的集合称为$Herbrand$域，使用$B_P$表示。
+\end{definition}
+\begin{definition}[Herbrand基]将$Herbrand$域内的全部原子和程序$P$所出现的谓词符号组成的集合称为$Herbrand$基，使用$A_P$表示，为了保持简洁，通常用$A$来代替$A_P$。
+\end{definition}
+\begin{definition}给定一个规则$r$，使用$ground(r)$表示所有规则的集合，这些规则是通过使用常量持续地替换$r$中的变量而获得的。
+\end{definition}
+\begin{definition}一个程序$P$是一系列规则的集合，具有变量的程序被理解为$P$中规则的所有基本实例的集合的简写，表示如下：
+    \begin{align}
+        \label{rule:4}
+        ground(P) \ = \ \bigcup_{r \in P} \ ground(r)
+    \end{align}
+\end{definition}
+
+一个解释$I$由一对$<I^+,I^->$组成，并且$ I^+ \cup I^- \subseteq A$，$I^+ \cap I^- = \emptyset$。$I^+$收集已知为真的原子知识，$I^-$收集已知为假的原子知识。当$I^+ \cap I^- = \ A$时，$I$被称作完全解释，如果$I$为不完全解释，这代表着解释$I$中存在真值未确定的原子。
+
+假设$P$是一个回答集程序，$I$时一个解释。当一个正文字$a$满足$a \in I^+$时，解释$I$满足$a$，记作$ I \models a$，当一个NAF文字$not \ a$满足$a \in I^-$时，解释$I$满足$not \ a$，记作$ I \models not \ a$。当解释$I$满足一个集合$S$的每一个文字时，解释$I$满足集合$S$，记作$ I \models S$，当一个规则$r$满足$ I \nvDash body(r) \ or \ I \models head(r)$时，解释$I$满足规则$r$。当解释$I$满足程序P的所有规则时，解释$I$是程序$P$的一个模型。假设$a$是程序$P$的一个原子，当$head(r)=a \ and \ I \models body(r)$时，解释$I$支持$a$。
+
+
+\begin{definition}[程序的模型]假设$P$是一个程序，$ground(P)$是程序$P$中所有基实例的集合，程序$P$的一个解释是$P$的一个模型，在该解释下，满足$ \forall a \ \in  \ ground(P)$为真。
+\end{definition}
+\subsection{回答集语义}
+\begin{definition}[一致性文字集合]给定一个集合$S$，加入$S$中不同时包含$a$和$\neg a$，则集合$S$是一致性文字集合，其中，$a$是任意文字。
+\end{definition}
+
+
+\begin{definition}[可满足性，Satisfiability]给定集合$S$，文字$lit$满足集合S是指文字$lit$属于集合$S$，即$lit \in S$。集合$S$满足头部$head(r)$是指$head(r)$与S的交集不为空集，即$S \cap head(r) \neq \emptyset$。集合$S$满足体部是正体部包含于集合$S$，并且负体部和集合$S$的交集是空集，即 $body^+(r) \subseteq S$,$S \cap body^-(r) = \emptyset$。集合$S$满足规则$r$是指$S$满足规则$r$的头部或者$S$不满足规则$r$的体部。如果一个集合$S$满足规则$r$，记作$S \models r$,给定一个ASP程序$P$，如果对于$P$中的任意规则r，$S\models r$，那么就说$S$满足程序$P$。
+\end{definition}
+\begin{example}
+给定ASP程序$P$，包含两条规则：
+
+$r1: p \leftarrow q,\ s. $
+
+$r2:s \leftarrow t.$
+
+以及一个实例化文字集合$S$为：
+
+$\{ p, \ q \}$
+
+根据上述定义检查定义检查集合$S$是否满足程序$P$。
+\begin{enumerate}[label=(\arabic*),topsep=0pt]
+    \setlength\itemsep{-0.3em}
+    \item 集合$S$满足文字$p$与文字$q$；
+    \item 因为$S \cap head(r1) = p$，所以集合$S$满足$head(r_1)$，集合$S$满足规则$r_1$；
+    \item 因为$ body^+(r2)$不含于集合$S$，所以集合$S$不满足$body(r_2)$，因此集合$S$满足规则$r_2$；
+    \item 因为集合$S$满足程序$P$的每一条规则，因此，集合$S$满足程序$P$。
+\end{enumerate}
+\end{example}
+\begin{definition}[规约，Gelfond-Lifshitz]假设程序$P$是给定的实例化程序，$S$是集合，$l$是文字，$S \subseteq Lit(P), \ l \in Lit(P)$,$P$关于$S$的GL规约结果是$P^S$,根据以下过程求得：
+    \begin{enumerate}[label=(\arabic*),topsep=0pt]
+        \setlength\itemsep{-0.3em}
+        \item 如果$l \in S$,将程序$P$中所有包含$not \ l$的规则删除；
+        \item 删除剩下规则中的缺省文字；
+    \end{enumerate}
+\end{definition}
+ASP的回答集语义包含两种情况，第一种情况考虑不包含缺省否定的程序，即简单逻辑程序，另一种情况是考虑包含缺省否定的程序，即扩展逻辑程序，下面分别介绍这两种情况。
+\begin{definition}[简单逻辑程序回答集]假设$P$是不包含缺省否定的程序，程序$P$的回答集，记作$M(P)$，该集合$S$满足：
+    \begin{enumerate}[label=(\arabic*),topsep=0pt]
+        \setlength\itemsep{-0.3em}
+        \item 对于程序$P$中的每一条规则$l_0 \leftarrow \ l_1,...,l_m$，如果$l_1,...l_m \ \in \ S$，那么$l_0 \ \in \ S$。
+        \item $S \ \subseteq \ lit(P)$且不存在$S$的任何子集也满足程序$P$的每一个规则，即$S$是满足程序$P$的最小集合；
+        \item 如果$S$包含含互补的文字，那么$S \ = \ lit(P)$；
+    \end{enumerate}
+\end{definition}
+\begin{definition}[扩展逻辑程序回答集]假设P是包含缺省否定的程序，$S$是实例化文字集合，经过GL规约后，如果$S$是$P^S$的回答集，则$S$是$P$的回答集。如果程序$P$没有回答集或者只有一个回答集$Lit(P)$，那么程序$P$是不一致的，否则，程序$P$是一致的。可以看出，使用GL规约，可以将扩展逻辑程序程序转换为简单逻辑程序，从而得到扩展逻辑程序的回答集。下面通过一个例子说明
+\end{definition}
+
+\begin{example}
+
+给定实例化后的ASP程序$P$：
+
+$r_1: \ p(a) \leftarrow not \ p(b).$
+
+$r_2: \ p(b) \leftarrow not \ p(a).$
+
+$r_3: \  \leftarrow p(b).$
+
+这段程序可能的解释有四个： $S_1 = \emptyset , \ S_2  =\{p(a)\}, \ S_3  =\{p(b)\},S_4  =\{p(a),p(b)\}$。依次验证:
+\begin{enumerate}[label=(\arabic*),topsep=0pt]
+    \setlength\itemsep{-0.3em}
+    \item 当$S_1 = \emptyset$时，由于$S_1$中不存在文字，因此不满足GL规约的条件1，删除规则中的缺省文字，此时，$P^S_1 = \{r_1: \ p(a). \  r_2: \ p(b).\ r_3: \  \leftarrow p(b).\}$，由于集合中的规则$r_2$与$r_3$存在矛盾，因此没有回答集，$S_1$不是P的回答集。
+    \item 当$S_2 = \{p(a)\}$时，根据GL规约，首先删除包含$not \ p(a)$的规则$r_2$，再删除掉规则$r_1$中的缺省文字$not \ p(b)$，$P^S_2 = \{r_1: \ p(a). \ r_3: \  \leftarrow p(b).\}$，所以$P^S_2$的回答集$S = \{p(a)\} \ = S_2$,所以$S_2$是程序P的回答集。
+    \item 当$S_3 = \{p(b)\}$时，根据GL规约，首先删除包含$not \ p(b)$的规则$r_1$，再删除掉规则$r_2$中的缺省文字$not \ p(a)$，$P^S_3 = \{r_2: \ p(b). \ r_3: \  \leftarrow p(b).\}$，由于集合中的规则$r_2$与$r_3$存在矛盾，因此没有回答集，$S_3$不是P的回答集。
+    \item 当$S_4 = \{p(a),\ p(b)\}$时，根据GL规约，首先删除包含$not \ p(a)$的规则$r_2$，包含$not \ p(b)$的规则$r_1$，$P^S_4 = \{r_1: \ p(a). \ ,r_2: \ p(b). \ r_3: \  \leftarrow p(b).\}$，由于集合中的规则$r_2$与$r_3$存在矛盾，因此没有回答集，$S_4$不是P的回答集。
+\end{enumerate}
+\end{example}
+\begin{definition}
+回答集的语义高度依赖于出现在程序负文字中原子的正确性，为了方便使用，本文使用$NANT(P)$来表示出现在NAF文字中的原子，公式定义如下：
+\begin{align}
+    \label{rule:5}
+    NANT(P) \ = \ \{a \ | \ \exists \ r \ \in ground(P)\ : \ a \ \in \ body^-(r) \}
+\end{align}
+\end{definition}
+\begin{definition}
+通常来说，一个程序$P$由多个不同的回答集，本文定义$SM(P)$，来表示程序$P$所有回答集的集合。
+\end{definition}
+\subsection{well-founded 语义}
+上世纪90年代，良基语义的概念由Van Gelder A提出，对于任意的回答集程序，都存在对应的良基模型，并且在多项式时间内\cite{van1991well}可以计算出这个模型。
+\begin{definition}可以假设$P$是回答集程序，$S$和$V$是$A$中原子的集合，可以将集合$S$关于$P$和$V$的立即结果$T_{P,V}(S)$定义如下：
+    \begin{align}
+        \label{rule:6}
+        T_{P,V}(S) \ = \ \{a| \ \exists r \in \ P,head(r) \ = \ a,body^+(r) \subseteq S, body^-(r) \cap V = \emptyset \ \}
+    \end{align}
+    根据上式，可以得到，如果集合$V$确定了，关于集合$S$的函数$T_{P,V}(S)$是递增的。因此，可以定义函数$lfp(.)$来表示当集合$V$固定时，函数的最小定界点。
+\end{definition}
+\begin{definition}假设$P$是程序，$P^+$是程序$P$中不包含负体部的规则集合，序列$(K_i,U_i)_{i \geqslant 0}$定义如下：
+
+$K_0 \ = \ lfp(T_{P^+})$
+
+$K_i \ = \ lfp(T_{P,U_{i-1}})$
+
+$U_0 \ = \ lfp(T_{P,K_0})$
+
+$U_i \ = \ lfp(T_{P,K_i})$
+
+假设$j$是计算过程中的第一个下标，则计算方法形如$<K_j,U_j> \ = \ <K_{j+1},U_{j+1}>$，通常使用$WF_P \ = \ <W^+,W^->$来表示程序$P$的唯一良基模型，其中，$W^+ \ = \ K_j$并且$W^- \ = \ A\setminus U_j$。
+\end{definition}
+\begin{example}
+假设程序$P$包含以下四条规则：
+
+$r_1: \ q \ \leftarrow \ a,not \ p.$
+
+$r_2: \ p \ \leftarrow \ a,not \ q.$
+
+$r_3: \ a \ \leftarrow \ b.$
+
+$r_1: \ b.$
+
+该程序$P$的$K_0$的计算过程如下：
+\begin{enumerate}[label=(\arabic*),topsep=0pt]
+    \setlength\itemsep{-0.3em}
+    \item 首先计算$P^+$，$P^+ \ = \ \{\ a \ \leftarrow \ b,  \ b.\}$。
+    \item 当$S \ =\ \emptyset$时、，因为规则$r_4$满足$body^+(r_4) \ \subseteq\ S, \  body^-(r_4) \ \cap\ V = \ \emptyset$，因此，$T_{P^+}(\emptyset) \ = \ \{b\}$。
+    \item 当$S \ = \ \{a\}$时，因为规则$r_3,r_4$的正体部体部不含于$S$,所以规则$r_3,r_4$都不满足条件，因此，$T_{P^+}(\{a\}) \ = \ \emptyset$。
+    \item 当$S \ = \ \{b\}$时，因为规则$r_3,r_4$都满足条件，即正体部含于集合$S$，负体部交集合$V$为空，因此，$T_{P^+}(\{b\}) \ = \ \{a,b\}$。
+    \item 当$S \ =\ \{a,b\}$时，因为规则$r_3,r_4$都满足条件，即正体部含于集合$S$，负体部交集合$V$为空，因此，$T_{P^+}(\{a,b\}) \ = \ \{a,b\}$。
+    \item 因此，$T_{P^+} \ = \ \{a,b\}, \ K_0 \ = \ lfp(T_{P^+}) = \ \{a,b\}$。
+\end{enumerate}
+该程序$P$的$U_0$的计算过程如下：
+\begin{enumerate}[label=(\arabic*),topsep=0pt]
+    \setlength\itemsep{-0.3em}
+    \item 此时，集合$V \ = \ K_0 =  \{a,b\}$。
+    \item 当$S = \emptyset$时，因为规则$r_4$满足$body^+(r_4) \subseteq S, \  body^-(r_4) \cap V = \emptyset$，因此，$T_{P^,K_0}(\emptyset) \ = \ \{b\}$。
+    \item 当$S = \{a\}$时，因为规则$r_1,r_4$都不满足条件，规则$r_2,r_3$满足条件，因此，$T_{P^,K_0}(\{a\}) \ = \ \{b,q\}$。
+    \item 当$S = \{b\}$时，因为规则$r_3,r_4$都满足条件，规则$r_1,r_2$不满足条件，因此，$T_{P^,K_0}(\{b\}) \ = \ \{a,b\}$。
+    \item 当$S = \{a,b\}$时，因为规则$r_1,r_2,r_3,r_4$都满足条件，因此，$T_{P^,K_0}(\{a,b\}) \ = \ \{a,b,p,q\}$。
+    \item 因此，$T_{P^,K_0} \ = \ \{a,b,p,q\} \ U_0 \ = \ lfp(T_{P^,K_0}) = \ \{a,b,p,q\}$。
+\end{enumerate}
+同理，可以得出$K_1 \  = \ \{a,b\} \ = \ K_0, \ U_1 \ = \{a,b,p,q\} \ = \ U_0$，因此，程序$P$的良基模型为$<\{a,b\},\emptyset>$，$p$和$q$在良基模型中属于undefined。
+\end{example}
+
+
+
+\section{ASP求解器}
+一般来说，ASP程序的求解器包括两层体系结构，第一层是实例化工具（Grounders），实例化工具把ASP程序中的变量实例化为常量，并实现选择规则、内置谓词等扩展功能；第二层是模型搜索引擎，这是ASP求解器的核心部件，主要功能是处理经过实例化所得到的ASP程序，并对搜索过程进行优化处理，高效的计算出回答集。
+
+迄今为止，已经出现了许多高效的ASP求解器，例如Smodels\cite{2000Proceedings}、DLV\cite{2005The}、Cmodels\cite{2004SAT}、ASSAT\cite{lin2004assat}、CLASP\cite{gebserGringoNewGrounder2007}和Clingo\cite{2007clasp}等，这其中，使用最为广泛的ASP求解器是由P.Simons、I.Niemela等人开发的Smodels/Lparse。Smodels/Lparse系统支持部分额外类型的文字，例如基数文字，以$L\{l_1,...l_n\}U$的形式存在，$L$和$U$是正整数，并且$L \ \leqslant \ U$，$l_1,...,l_n$都是文字，如果$\{l_1,...,l_n\}$中有$x$个文字是正确的并且$L \ \leqslant x \ \leqslant U$，则说明集合$M$满足基数文字$\{l_1,...,l_n\}$。
+
+Lparse作为前端输入框架，Lparse的输入为一个逻辑程序$P$，Lparse的输出为$ground(P)$的简洁输出。Smodels以Lparse的输出作为输入，并且调用相关程序来得到逻辑程序$P$的回答集。Smodels作为后端引擎，产生输入程序的答案集集合，可以提供各种控制选项来指导计算。例如：可以对提供的回答集数量建立限制，或者要求答案集包含特定的原子等。
+
+除了Smodels求解器外，常见的ASP求解器还包括：N.Leone、W.Faber和G.Pfeifer等人开发的DLV求解器；R.Laminski、M.Gebser、B.Kaufmann等人开发Clingo求解器。DLV求解器以良基（well-founded）模型语义为基础，结合Herbrand模型，提出了析取逻辑程序回答集的递归算子，并配合回答集的检验算法，来完成回答集的计算；借鉴了SAT问题的求解算法DPLL，Clingo求解器定义了冲突集，改进了冲突驱动子句学习技术和冲突驱动回溯策略，提出了基于可满足性检测SAT和约束处理CSP的方法来计算程序的回答集。DLV求解器的前端需要完成模型建立、智能实例化和模型检查三项任务，花费时间较长，为了减少运算时间，DLV在内核采用多种优化技术（例如：模型建立优化、实例化优化等）。Clingo求解器的前端需要将程序实例化，通常使用Gringo来完成这项任务，Clingo求解器的后端Clasp用于回答集的求解。Clingo将Gringo和Clasp进行结合，并在证明回答集是否有解进行了优化。Clingo求解器与DLV求解器因为具有求解能力出色、开源和免费的特点，已经投入到许多商业化模式中，并在不断完善求解能力和效率。
+
+可以注意到现在常用的ASP求解器，它们的运作方式都类似于Smodels。DLV使用自己的$grounder$，其他的求解器使用Lparse。后续新提出了一些$grounder$程序，例如Gringo、SAT等。
+
+因为Clingo求解器具有免费开源、使用简单、运行高效的特点，本文在求解ASP程序时，使用Clingo进行相关实验在求解well-founded模型时，采用DLV求解器。
+
+

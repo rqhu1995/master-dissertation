@@ -1,0 +1,44 @@
+\chapter{ASP交互程序解释模型的设计}
+\section{面向解释的ASP程序图表示}
+面向人工智能可解释对易于人接受的要求，结合图对于关联关系直观表达的特性，本文设计基于文字-规则依赖图的方法对ASP程序的解释进行表示。因此，首先需要定义一种面向解释的ASP程序图表示法，该表示法应能够简洁、完整地说明程序中规则和文字之间的依赖关系。第\ref{chp:introsuction}章已有的研究中，已经提出了许多与ASP程序相关的图表示方法，包括依赖图（DG，Denpendency Graph）\cite{apt1994logic}，规则图（RG，Rule Graph）\cite{dimopoulos1996graph}和扩展依赖图（EDG，Extended Dependency Graph）\cite{brignoli2014characterizing}。在交互解释的需求中，我们希望尽可能详细地保留与程序相关的所有文字和规则，而上述三种图表示中，只有EDG在表示中既包含程序中的规则又包含程序中的原子。因此，基于EDG的思想，我们定义了一种原子-规则图（ARG，Atom-Rule Graph），这种表示直观地呈现了原子与规则之间的依赖关系。
+
+\begin{definition}[原子-规则图ARG]
+    给定一个实例化的一致性ASP程序P，该程序的原子-规则图ARG（记为$ARG_P$）定义一张图$\langle V, E \rangle $，其中：
+    \begin{itemize}[topsep=0pt]
+      \setlength\itemsep{-0.3em}
+      \item $V=V_{atom} \cup V_{rule} \cup V_{sink}$表示$ARG_P$中的所有结点组成的集合，其中：
+      \begin{itemize}[label=$\circ$,topsep=0pt]
+        \setlength\itemsep{-0.3em}
+        \item $V_{atom} = At(P)$ 是$ARG_P$中所有的 \textbf{原子结点}，表示$P$中出现的所有原子;
+        \item $V_{atom} = R(P)$ 是$ARG_P$中所有的 \textbf{规则结点}，表示$P$中出现的所有规则;
+        \item $V_{sink} = \{Fact, NH\}$ 是图中唯一可能的两个汇点的集合，称为\textbf{汇结点}，即图中唯一可能的两个没有出边的结点。
+      \end{itemize}
+      \item $E=E_{ap} \cup E_{dep} \cup E_{end}$表示$ARG_P$中的所有边组成的集合.
+      \begin{itemize}[label=$\circ$,topsep=0pt]
+        \setlength\itemsep{-0.3em}
+        \item $E_{ap} = \{(a, r) \mid a \in V_{atom}, r \in V_{rule}, a \in head(r) \}$ 是所有的\textbf{规则适用边}, 表示所有的适用规则到相应原子之间的推导关系；
+        \item $E_{dep} = \{(r, +, a) \mid r \in V_{rule}, a \in body^+(r) \} \cup \{(r, -, a) \mid r \in V_{rule}, a \in body^-(r) \}$ 是所有的\textbf{原子依赖边}, 表示所有的规则与其体部各原子之间的依赖关系；
+        \item $E_{end}=\{(r, +, Fact) \mid r \in V_{rule}, body(r)=\emptyset\} \cup \{(l, -, NH) \mid l \in V_{atom}, \forall r \in P, head(r) \neq l\}$是所有的\textbf{终结边}, 表示所有为真的事实或未在规则头部出现过的为假的原子无需进一步再解释。
+      \end{itemize}
+    \end{itemize}
+    \end{definition}
+    \begin{example}
+        考虑下面的程序$P_2$ \label{prg:p2}:
+    \begin{center}
+    \begin{tabular*}{.8\linewidth}{r @{\extracolsep{\fill}} cl}
+      $r_1: q \leftarrow p.$ &$r_2: p \leftarrow q, s, not\ r. $ &$r_3:p.$
+    \end{tabular*}
+  \end{center}
+
+  \begin{figure}[htbp] 
+    \centering 
+    \subfloat[原子规则图$ARG_{P_2}$]{\includegraphics[height=.45\textwidth, valign=c]{figures/原子规则图.pdf}} 
+    \quad\quad\quad\quad\quad\quad 
+    \subfloat[扩展依赖图$EDG_{P_2}$]{\includegraphics[height=.45\textwidth, valign=c]{figures/依赖图.pdf}} 
+    \caption{程序的两种图表示方法示意} 
+    \label{fig:3_1} 
+    \end{figure}
+    程序$P_2$的原子-规则图$ARG_{P_2}$如图\ref{fig:3_1}(a)所示，作为对比，我们展示其对应的扩展依赖图$EDG_{P_2}$，如图\ref{fig:3_1}(b)所示。在图\ref{fig:3_1}(a)中，所有原子节点，规则节点和汇节点分别用圆，长方形和双圆表示。显然，任何程序$P$的ARG都可以通过在EDG中显式地添加规则节点、合并具有相同原子的节点以及标明事实或不可推导原子等结束节点转换而来。显然，与ARG相比，EDG更简洁、紧凑，而程序中诸如循环之类的信息很难在EDG中反映出来，并且EDG的可读性和直观性对不了解规则的非编程人员来说弱于ARG。 
+    \end{example}
+\section{s s s}
+\section{sss}

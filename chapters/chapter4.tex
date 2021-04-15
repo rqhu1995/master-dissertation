@@ -1,427 +1,276 @@
-\chapter{特殊环境与浮动体}
-\label{chp:float}
+\chapter{ASP程序调试模型的设计}
+\label{chp:debug}
+在定义了ASP程序的解释模型后，本节将基于该解释模型，进一步定义ASP程序的调试模型。考虑ASP程序的调试场景，大致可以分为两种不同的情况：
+\begin{enumerate}[topsep=0pt]
+    \setlength\itemsep{-0.3em}
+    \item 程序是一致的，但用户预期出现（不应出现）的文字未出现（出现）在回答集中；
+    \item 程序是不一致的，但没有回答集或回答集为程序中所有的文字\cite{schulz2015characterising}。
+\end{enumerate}
+现有调试研究主要集中对不一致程序进行，因此本章首先介绍不一致逻辑程序的模型，然后再介绍一致性程序调试模型。
+\section{不一致ASP程序的调试}
+对于不一致的ASP程序，其调试的难点通常在于面对\textit{UNSATISFIABLE}的求解结果，即使用户心中已有明确期待的一个或多个回答集文字，程序的问题也不一定出现与这些文字在相关的规则或事实中，也可能是其他部分的矛盾导致了整个回答集都无法获得。当程序规模较大或程序逻辑较为复杂的时候，用户只能试探性地猜测可能出现问题的规则将其从程序中删除，再尝试对剩余部分求解。这样的行为效率较低，并且删除掉的规则未必就是存在问题的规则。因此，亟需在程序编写完成后对其进行一个静态分析，以快速定位导致程序不一致问题的文字，提示用户对包含这些文字（及其关联规则）重点关注，推荐作为调试的入口；另一方面，为了更真实地将命令式语言的调试风格引入ASP程序，考虑设计一个单步调试模型，使得规则间无序的ASP程序在用户的交互下按照交互步有序执行，直到发现程序中的问题。本节分别介绍基于程序静态分析的调试入口推荐和不一致ASP程序的单步调试模型设计。
+\subsection{基于程序静态分析的调试入口推荐}
+对不一致ASP程序的研究已经有很多丰富的结论，其中Schulz等人对不一致程序给出了三种情形的讨论\cite{schulz2015characterising}，全面系统地找到了导致ASP程序不一致的原因。该讨论基于良基模型，并且能够指出程序中造成不一致的“元凶文字集（Culprit Set）”。这一过程可作为ASP程序调试模型中调试前进行的一次静态程序分析，并且该过程不依赖于回答集。根据是否具有良基模型，下面将介绍这三种原因，之后进一步详细讨论造成不一致的具体文字或规则，并基于这三种原因给出基于程序静态分析的调试入口推荐算法。
+\subsubsection{不一致程序的三种情形}
+实际上，程序中的“否定”（包括强否定与NAF否定）是造成逻辑程序不一致的根本原因。Gelfond与Lifschitz等人已经证明，如果一个逻辑程序不含这两种否定，该程序在稳定模型语义下一定是一致的\cite{gel91b}。对于存在否定的程序，其不一致原因的产生又可以归因于两种情况：1）回答集是程序中全部的文字；2）程序不存在回答集。通过考察程序的良基模型，这两种情况进一步又可以细分为如下3种情景，下面分别通过例子加以说明。
 
-事实上我们本该假设所有使用本 \LaTeX 论文模板的人都具备了相当的 \LaTeX 使用经验和知识，如果这样那么本章所介绍的内容是不言自明的。但是也存在很多初次接触 \LaTeX 的研究生朋友，因为各种不同的原因而尝试使用 \LaTeX 进行论文排版。因此我们认为还是有必要对这些 \LaTeX 中的基本元素进行反复地强调，以避免我们的个别开发者的邮箱和GitHub Issues被投诉和问询填满。如果你是一个 \LaTeX 老手，你可以直接跳过本章而不用担心漏过任何重要内容。
+\subsubsection*{情形1：程序$P$没有良基模型，且程序的唯一回答集是$Lit(P)$}
+\begin{example}[程序$P_7$]
+    \label{eg:4.1}
+    考虑下面的一个不一致程序$P_7$ \label{prg:p7}：
+    \begin{center}
+        \begin{tabular*}{.8\linewidth}{l @{\extracolsep{\fill}} lll}
+            $r_1: p \leftarrow q.$ & $r_2: q \leftarrow r.$ & $r_3: r \leftarrow.$ & $r_4: s \leftarrow.$ \\
+            $r_5: u \leftarrow not\ t.$ & $r_6: t \leftarrow not\ u.$ & $r_7: \lnot p \leftarrow.$ & 
+        \end{tabular*}
+    \end{center}
+    
+    程序\hyperref[prg:p7]{$P_7$}没有良基模型。假设其存在回答集$S$，由于程序中的三条事实$r_3, r_4, r_7$，可得到$r \in S, s \in S, \lnot p \in S$。进一步根据$r_1, r_2$，得到$q \in S, p \in S$，此时$S$中包含了一对互补文字$p, \lnot p$，根据回答集的定义可以得到，若$P_7$存在回答集，则回答集必须是程序中的所有文字，即$S=Lit(P_7)$。又因为$\forall r \in P_7^{Lit(P_7)}, S'=\{p, \lnot p, q, r, s\} \models r$，且不存在$S'' \subset S'$满足程序$P_7^{Lit(P_7)}$的所有规则，而$S'$依然包含互补文字$p, \lnot p$，因此$Lit(P_7)$就是$P_7^{Lit(P_7)}$的回答集，进一步得到$Lit(P_7)$是$P_7$的回答集。可以看到，NAF文字的负环（$r_5, r_6$与$u, t$）在这里并没有直接导致不一致的出现，从上述的推导过程可以看到，这个程序不一致的直接原因是$\lnot p$与$p$分别通过不含NAF的规则被蕴含。
+\end{example}
 
-\section{图片}
+\subsubsection*{情形2：程序$P$没有良基模型，同时没有回答集}
+\begin{example}[程序$P_8$]
+    \label{eg:4.2}
+    考虑下面的一个不一致程序$P_8$ \label{prg:p8}：
+    \begin{center}
+        \begin{tabular*}{.8\linewidth}{l @{\extracolsep{\fill}} ll}
+            $r_1: q \leftarrow not\ r.$ & $r_2: \lnot q \leftarrow \lnot s, not\ p.$ & $r_3: r \leftarrow not\ \lnot t$\\
+            $r_4: \lnot s \leftarrow.$ & $r_5: \lnot t \leftarrow.$ &
+        \end{tabular*}
+    \end{center}
+    
+    程序\hyperref[prg:p8]{$P_8$}没有良基模型。假设其存在回答集$S$，由于程序中的事实$r_4, r_5$，可得到$\lnot s \in S, \lnot t \in S$。进一步根据$r_1, r_2, r_3$，得到$\lnot q \in S, q \in S$。此时$S$中包含了一对互补文字$q, \lnot q$，根据回答集的定义可以得到，若$P_8$存在回答集，则回答集必须是程序中的所有文字，即$S=Lit(P_8)$。而$P_8^{Lit(P_8)}=\{q \leftarrow ., \lnot s \leftarrow., \lnot t \leftarrow.\}$，该程序的回答集$\{q, \lnot s, \lnot t\}$中不包含互补文字，因此，$Lit(P_8)$不是$P_8$的回答集，这与假设矛盾，程序\hyperref[prg:p8]{$P_8$}没有回答集。与上例不同的是，此处造成不一致的地方虽然也是互补文字（$q, \lnot q$），但推出这一对文字的规则中均包含NAF。
+\end{example}
 
-\subsection{插入图片}
-在 \LaTeX 文档中插入图片，你需要如下的代码：
+因此，上述两种情景中，情景1的不一致归因于其包含的强否定，而情景2的不一致则同时归因于强否定与NAF。事实上，对于没有良基模型的ASP程序$P$而言，有如下定理：
 
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
+\begin{theorem}
+    给定一个回答集程序$P$，若$P$没有良基模型，$\vdash_{MP}$表示命题逻辑推理中的假言推理（modus ponens），推理结论仅使用程序中的$\leftarrow$作为规则得到，则：
+    \begin{enumerate}[itemsep=0pt, label=(\arabic*)]
+        \item $P$的回答集是$Lit(P)$，当且仅当$\exists a \in HB_P$，使得$P \vdash_{MP} a$且$P \vdash_{MP} \lnot a$，
+        \item $P$没有回答集，当且仅当$\nexists a \in HB_P$，使得$P \vdash_{MP} a$且$P \vdash_{MP} \lnot a$。
+    \end{enumerate}
+\end{theorem}
+    注意到例\ref{eg:4.2}中$\lnot q$的推导需要$not\ p$的成立，而$not\ p$是通过“$p$未出现在任何规则头部无法推导”推理得到，因此$P_8 \not\vdash_{MP} \lnot q$，而$P_8 \cup \{not\ p\} \vdash_{MP} a$。本文借用Schulz等人的定义，对于ASP程序$P$及其中的一个文字$a$，若$P \vdash_{MP} a$，则$a$能够被$P$\textbf{严格推出（strictly derivable）}；若$P \not\vdash_{MP} a$，但$\exists \Delta\subseteq NANT(P), P \cup \Delta \vdash_{MP} a$，则$a$能够被$P$\textbf{可废止推出（defeasibly derivable）}。例\ref{eg:4.1}中，$\lnot p$被程序$P_7$严格推出，而例\ref{eg:4.1}中，$\lnot q$被程序$P_8$可废止推出。
+
+\subsubsection*{情形3：程序$P$有良基模型，但没有回答集}
+\begin{example}[程序$P_9$]
+    \label{eg:4.3}
+    考虑下面的一个不一致程序$P_9$ \label{prg:p9}：
+    \begin{center}
+        \begin{tabular*}{.8\linewidth}{l @{\extracolsep{\fill}} ll}
+            $r_1: r \leftarrow not\ s.$ & $r_2: q \leftarrow not\ s.$ & $r_3: p \leftarrow not\ r.$\\
+            $r_4: s \leftarrow not\ r.$ & $r_5: \lnot q \leftarrow not\ s.$ & $r_6: \lnot p \leftarrow not\ r.$
+        \end{tabular*}
+    \end{center}
+    
+    程序\hyperref[prg:p9]{$P_9$}有良基模型$\langle \emptyset, \emptyset \rangle$。该程序没有回答集，假设其存在回答集$S$，观察各规则可以发现，文字$s, r$有且仅有一个会出现在$S$中。若$s \in S$，则$p, \lnot p \in S$；若$r \in S$，则$q, \lnot q \in S$，因此$S$只可能是$Lit(P_9)$。又由于$P_9^{Lit(P_9)}=\emptyset$，因此$P_9^{Lit(P_9)}$的唯一回答集为$\emptyset \subset Lit(P_9)$，$Lit(P_9)$不是$P_9$的回答集，进而得到$P_9$没有回答集。与例\ref{eg:4.2}不同的是，此处导致互补文字出现的虽然仍NAF导致，但NAF成立的条件为程序中的负环（$r_1, r_4\ \text{与 }\ s, r$）。
+\end{example}
+
+\subsubsection{导致程序不一致的具体文字集合}
+在上述三种情形的讨论中，已经以非形式化的说明分析了导致三类不同的程序出现不一致的具体文字。与本章开头的结论相一致，两类否定，即强否定与NAF是造成程序不一致的唯一可能原因。下面以定理的方式形式化地给出导致三类程序不一致的文字集合结论，其中第三类程序需要分两种情况讨论，定理的证明见附录。
+
+\begin{theorem}
+    \label{thm:incstlit}
+    对一个非一致性ASP程序$P$，$P'$通过将$P$中所有的强否定文字$\lnot a$替换为$a'$得到的一个转换程序，$INCST(P)$为直接导致其不一致的文字集合，$\langle WF^+_{P'}, WF^-_{P'} \rangle$则：
+    \begin{enumerate}[itemsep=0pt, label=(\arabic*)]
+        \item $P$无良基模型，唯一回答集为$Lit(P)$：
+        $$INCST(P)=\{a, \lnot a\ \mid (a, a' \in WF^+_{P'}) \land (P' \vdash_{MP} a) \land (P' \vdash_{MP} a')\}$$
+        \item $P$无良基模型，无回答集：
+        $$INCST(P)=\{a, \lnot a\ \mid a\ \text{或} a' \text{被程序} P' \text{可废止推出}\}$$
+        \item $P$有良基模型（无回答集），但$P'$有回答集$S'$：
+        $$INCST(P)=\{a, \lnot a\ \mid (a, a' \in S'), a\ \text{或} a' \text{被程序} P' \text{可废止推出}\}$$
+        \item $P$有良基模型（无回答集），但$P'$没有回答集$S'$：
+        $$INCST(P)=\{b_1, \ldots, b_o, b_1\ \mid (b_1, \ldots, b_o, b_1) \in cyc^-(P), b_i\ \text{不在程序的三值模型中}\}$$
+    \end{enumerate}
+\end{theorem}
+
+根据上述四个定理，本文对用户输入的程序进行一次静态分析，判断程序不一致落入何种情形，并给出导致其不一致的直接文字集合。进一步，对于不一致程序而言，虽然不存在解释空间（由于没有一致回答集），但可以构建其原子-规则图$ARG$，将包含导致不一致的直接文字集合的最小子图从原子-规则图ARG中提取出来，提示用户需要检查的规则和原子；另一方面，相较于命令式语言的程序，声明式语言程序没有明确的程序入口和执行次序，第三章中的解释模型将“步”的概念引入解释中，因此考虑进一步将其引入调试中，这要求用户指定一个调试的起点（入口），上述定理得到的$INCST$集合可作为用户调试入口的推荐，引导用户从这些文字出发，更快地找到程序的错误。图4-1给出了查找直接导致不一致集合的流程示意图。
 \begin{figure}[htbp]
-  \centering
-  \includegraphics[width=.3\linewidth]{figures/content/4_1}
-  \caption{插入图片示例}
-  \label{fig:4_1}
-\end{figure}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 上面的代码会插入如下效果的图片：
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=.3\linewidth]{figures/content/4_1}
-  \caption{插入图片示例}
-  \label{fig:4_1}
-\end{figure}
-
-\subsection{浮动体环境与位置标识符}
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\begin{figure}[htbp]
-\end{figure}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 声明了一个图片浮动体环境。浮动体是 \LaTeX 中的一种特殊容器，用于容纳占据篇幅较大但不方便分页的内容，如图片或表格。方括号中的字母是浮动体位置标识符，用于向 \LaTeX 编译引擎提出位置建议。常见的位置标识符有以下4种：
-
-\begin{itemize}
-  \setlength{\itemsep}{1.5pt}
-  \setlength{\parsep}{1.5pt}
-  \setlength{\parskip}{1.5pt}
-  \item {\codefont h}：表示here。\LaTeX 编译引擎在面对用{\codefont h}标识的浮动体时会首先尝试在声明位置插入浮动体；
-  \item {\codefont t}：表示top。\LaTeX 编译引擎会尝试在当页顶部安置浮动体；
-  \item {\codefont b}：表示bottom。\LaTeX 编译引擎会尝试在当页底部安置浮动体；
-  \item {\codefont p}：表示float page。\LaTeX 编译引擎会尝试为该浮动体分页并使其占据全页。
-\end{itemize}
-你可以使用多个位置标识符并将其自由组合，你指定的顺序代表你向 \LaTeX 编译引擎所推荐的优先级。需要说明的是，编译引擎并不保证会按照你所指定的位置优先级安置浮动体，而是会根据浮动体大小、其在页面中的位置、文字的相对分布等多种因素决定浮动体的位置。因此在论文写作过程中，我们不建议你使用如“下图”，“上表”等使用方位来指代特定图片或表格的表述，因为你所插入的图片或表格很有可能并不会被编译到你想要它出现的位置。当然，你也可以在标识符前加上 !号来表示强制位置，如{\codefont !h}。但是我们不推荐这样做，因为这可能会造成很多你意想不到的后果。
-
-\subsection{图片的大小与路径}
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\centering
-\includegraphics[width=.5\linewidth]{figures/content/4_1}
-\end{lstlisting}
-\end{tcolorbox}
-
-{\codefont centering}表示浮动体在控制范围内居中。{\codefont includegraphics}语句向编译引擎指定你所想要引入的图片的大小与保存路径。在该命令之后跟随的方括号中，你可以指定图片的长或宽。默认情况下 \LaTeX 会锁定图片的长宽比例，因此你只需要指定长宽中的一个即可。后面的大括号用于填写图片的路径，你可以使用主文件main.tex的相对路径来表示。我们在模板根目录下设置了一个名为figures的目录用于存放图片，我们建议你把论文需要的所有图片放置于该目录下的content文件夹中以便查找和管理。
-
-\subsection{图片的标题与标签}
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\caption{插入图片示例}
-\label{fig:4_1}
-\end{lstlisting}
-\end{tcolorbox}
-
-{\codefont caption}用于指定图片的标题。{\codefont label}用于给图片添加标签，便于你在文本中引用该图片。对于上面的图片，如果我们想要在论文中引述其内容，可以采用如下方法：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-图\ref{fig:4_1}是东南大学的校徽，它的设计中蕴含着多种寓意。
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 上述文本在编译后会呈现这样的效果：
-
-图\ref{fig:4_1}是东南大学的校徽，它的设计中蕴含着多种寓意。
-
-\subsection{图片的并排}
-
-很多时候，你可能会想要将两张图片并排放置以节省排版空间。我们支持并鼓励你这样做。你只需要引入如下的代码：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\begin{figure}[htbp]
-  \centering
-    \begin{minipage}[t]{0.48\textwidth}
-      \centering
-      \includegraphics[width=6cm]{figures/content/4_2}
-      \caption{GitHub}
-      \label{fig:4_2}
-    \end{minipage}
-    \begin{minipage}[t]{0.48\textwidth}
-      \centering
-      \includegraphics[width=8cm]{figures/content/4_3}
-      \caption{NPM}
-      \label{fig:4_3}
-    \end{minipage}
-\end{figure}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 编译后的效果是这样的：
-
-\begin{figure}[htbp]
-  \centering
-    \begin{minipage}[t]{0.48\textwidth}
-      \centering
-      \includegraphics[width=4cm]{figures/content/4_2}
-      \caption{GitHub}
-      \label{fig:4_2}
-    \end{minipage}
-    \begin{minipage}[t]{0.48\textwidth}
-      \centering
-      \includegraphics[width=3cm]{figures/content/4_3}
-      \caption{npm}
-      \label{fig:4_3}
-    \end{minipage}
+    \centering
+    \includegraphics[height=.8\textwidth, valign=c]{figures/不一致集合计算.jpg}
+    \caption{不一致集合计算流程示意}
 \end{figure}
 
-注意，在上述代码中，我们定义了一个{\codefont figure}浮动体环境，并在其中用两个：
+对于前三种情况，推荐用户直接以$INCST$集合中的文字作为调试起点，并利用下文介绍的调试模型进行调试；对于第四种情况，除了给出$INCST$集合外，还将原子-规则图中的相关奇数负环找出，以供用户在调试前对相关规则进行检查，向用户推荐调试入口的过程如算法\ref{alg:dbgetcrcmd}所示。
 
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\begin{minipage}[t]{0.48\textwidth}
-\end{minipage}
-\end{lstlisting}
-\end{tcolorbox}
+\begin{algorithm2e}[H]
+    \label{alg:dbgetcrcmd}
+    \DontPrintSemicolon
+    \SetNoFillComment
+    \SetKwInput{Initialization}{初始化}
+    \SetKwInput{KwIn}{输入}
+    \SetKwInput{KwOut}{输出}
+    \setstretch{1.15}
+    \caption{获取程序$P$调试的推荐入口}
+    \KwIn{不一致ASP程序$P$}
+    \KwOut{文字规则结点集合}
+    \setcounter{AlgoLine}{0}
+    \everypar={\nl}
+    $ARG\_P \gets getARG(P)$ \tcp*[l]{获取程序的原子-规则图}
+    $negCycles \gets getAllNegCycles(ARG\_P)$ \tcp*[l]{获取原子规则图中的所有负环}
+    \tcc{函数c$omputeIncstLitSet$返回程序$P$的不一致情形$incstCond$与导致不一致的集合$incstLit$}
+    $incstCond, incstLit \gets computeIncstLitSet(P)$\;
+    \eIf {$incstCond \mathrel{\mathtt{!=}} neg\_loop$}{
+        \Return $incstLit$
+    }
+    {
+        $subGraph \gets \emptyset$\;
+        \ForEach{环$n\_cycle$ 在 $P$所有规则中}{
+            \If {$n\_cycle \cap incstLit \neq \emptyset$}{
+            $subGraph \gets subGraph \cup n\_cycle$
+            }
+        }
+        \Return $subGraph$
+    }
+\end{algorithm2e}
 
-\noindent 包裹了两张图片的声明。和单个图片类似，你也可以指定{\codefont minipage}相对浮动体的位置和大小。编译引擎将根据你{\codefont minipage}的大小调整在一行显示的图片数量。需要注意的是，在两个{\codefont minipage}声明之间请勿空行，因为 \LaTeX 编译引擎会将空行视作换行请求而错误地将你的两张图片上下放置。
+下面以第四种情况为例，说明对一个不一致程序$P_{10}$进行静态分析后向用户展示导致不一致的奇数负环并推荐调试入口的过程。
 
-\subsection{子图}
-
-和图片并排类似，子图也用于提供在水平方向上组织浮动体的功能。和图片的简单并排不同的是，子图功能一般用于表达同一主题下内容相近或有对比意义的图片或其他浮动体。对于子图功能，你需要引入如下代码：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\begin{figure}[htbp]
-  \centering
-  \subfloat[彩色标志]{\includegraphics[width=.38\textwidth]{figures/content/4_4}}
-  \quad\quad
-  \subfloat[单色标志]{\includegraphics[width=.38\textwidth]{figures/content/4_5}}
-  \caption{东南大学校徽的视觉设计}
-  \label{fig:4_4}
+\begin{example}
+    考虑程序$P_{10}$，在Clingo下该程序求解结果为“不一致”。该程序描述了经典的会议论文审稿分配问题中的一部分，问题的基本描述如下：会议论文上交后，各会议委员会成员需要给每篇文章一个审稿意愿评分（记为$bid/3$，三个项分别为委员会成员$pc/1$、稿件编号$paper/1$、分数（0，1，2，3））。对每个委员会成员而言，若某文章未被指定意愿评分，该评分默认设置为1分。若一份稿件被某成员指定了评分，则其被定义为$some\_bid/2$，两个项分别为委员会成员$pc/1$、稿件编号$paper/1$。程序$P_{10}$描述了两个成员、一篇文章下的分配问题。
+    \begin{align*}
+        \label{prg:p10}
+        &r_1: some\_bid(M, P) \leftarrow bid(M, P, X). \\
+        &r_2: bid(M, P, 1) \leftarrow not\ some\_bid(M, P), pc(M), paper(P).\\
+        &r_3: pc(m1;m2).\\
+        &r_4: paper(p1).\\
+        &r_5: bid(m1,p1,2).
+    \end{align*}
+    
+    从事实部分可以看到，仅有委员会成员$m1$对稿件$p1$指定了意愿为2分，因此$m2$对稿件$p1$的意愿评分应为默认值1分，期待的回答集中应包含$bid(m2, p1, 1)$，然而该程序不一致。该程序存在良基模型$\langle \{pc(m1), pc(m2), paper(p1), some\_bid(m1,p1), bid(m1, p1,\\2)\},\{bid(m2,p1,2), bid(m1, p1, 1)\}\rangle$，由于$P_{10}$中不含显式否定文字，因此$P_{10}'=P_{10}$，转换后的程序依旧没有回答集，根据不一致集合的计算方法，程序的不一致被归为第四种情形，即程序中的负奇数环导致了程序的不一致。该负环为$\{bid(m1, p1, 1), some\_bid(m1,\\ p1), bid(m1, p1, 1)\}$。考察程序$P_{10}$的原子-规则图，同样能看到这一负环，如图\ref{fig:negcyclep10}所示。
+    \begin{figure}[!h]
+    \centering
+    \includegraphics[height=.6\textwidth, valign=c]{figures/pc-incst例子.jpg}
+    \caption{$P_{10}$中负环示意}
+    \label{fig:negcyclep10}
 \end{figure}
-\end{lstlisting}
-\end{tcolorbox}
+    
+可以看到，出现问题是由于$bid(m1, p1, 1)$与$some\_bid(m1, p1)$相互依赖导致的，而实际上$some\_bid$谓词的设立是为了标注“被特别指定了评分的稿件”，这其中不应包含1分的情况，否则根据$r_2$默认为未指定评分的文章赋值为1分后，这些未指定评分的文章由于规则$r_1$再次成为$some\_bid$，违背了这一谓词设立的逻辑初衷。在$r_1$体部添加$X \mathrel{\mathtt{!=}} 1$，程序将会产生正确的结果。不过这一部分修改不是本文研究的内容，因此不在此处赘述。
+\end{example}
 
-\noindent 编译后呈现如下效果：
-
-\begin{figure}[htbp]
-  \centering
-  \subfloat[彩色标志]{\includegraphics[width=.38\textwidth]{figures/content/4_4}}
-  \quad\quad
-  \subfloat[单色标志]{\includegraphics[width=.38\textwidth]{figures/content/4_5}}
-  \caption{东南大学校徽的视觉设计}
-  \label{fig:4_4}
+\subsection{不一致ASP程序的单步调试模型设计}
+在给出了不一致程序的调试入口推荐后，本文介绍不一致ASP单步调试模型的设计。图\ref{fig:dbgpycharm}展示了一个广泛使用的现代IDE（PyCharm）对一个Python程序进行调试的界面，界面中的各个窗口和部件已在图中标明。
+\begin{figure}[t]
+    \centering
+    \includegraphics[height=.8\textwidth, valign=c]{figures/现代IDE调试界面.jpg}
+    \caption{PyCharm调试某Python程序的界面}
+    \label{fig:dbgpycharm}
 \end{figure}
+可以看到，对于命令式语言，由于存在明确的代码执行次序，因此调试的过程实际上是以主函数main为起点，将程序运行的过程拆解为以代码行为单位的逐条执行过程，用户通过按钮点击驱动程序向下一条执行。本文考虑将这样的调试风格应用于不一致ASP程序的调试中，通过分析ASP程序求解的特性可以发现，直接使用该方法存在两个主要的问题：
+\begin{enumerate}[label=(\arabic*), topsep=0pt]
+    \setlength\itemsep{-0.3em}
+    \item ASP程序没有一个明确的“执行起点”；
+    \item ASP程序结论的推导是规则和文字之间交错进行的，没有严格的推导顺序。
+\end{enumerate}
 
-\noindent {\codefont subfloat}命令指定了图片的子图单元，你可以在命令后的方括号中指定子图的名称，并在随后的大括号中声明子图的版式和索引路径。
+虽然ASP程序求解时推导的过程未必严格按照某种顺序进行，但考虑其原子-规则图可以发现，当一个ASP程序确定后，无论其是否为一致性程序、回答集如何，原子-规则图可以唯一确定。进一步，若指定某个文字或规则结点为起点，对该图按照某种策略进行深度优先遍历，则能够确定一条有序的推理路径。这其中，作为起点的“某个文字或规则”，可以通过上一小节所介绍的推荐入口确定，“某种策略”是指在进行深度优先遍历时，当该结点存在多个未访问的邻接结点时，需要由用户指定访问的顺序。
 
-\section{表格}
+解决了这两个问题后，本文通过类比，将ASP程序调试中的各要素与命令式语言调试的各要素进行一一映射，映射的结果如表\ref{tb:elementmap}所示。
 
-\subsection{插入表格}
+\begin{table}[ht!]
+    \caption{ASP程序调试与命令式语言调试要素映射表} \label{tb:elementmap}
+    \centering
+    \renewcommand\arraystretch{2}
+    \setlength{\tabcolsep}{15mm}{
+    \begin{tabular}{@{}cc@{}}
+    \toprule
+    命令式程序要素 & ASP程序中的要素 \\ \midrule
+    \renewcommand\arraystretch{1.1}
+    \begin{tabular}[c]{@{}c@{}}调试的起点函数\\ （用户设置的第一个断点）\end{tabular} & 
+    \renewcommand\arraystretch{1.1}
+    \begin{tabular}[c]{@{}c@{}}ARG遍历的起点结点\\ （不一致原因集合中用户选择）\end{tabular} \\
+    \renewcommand\arraystretch{2}
+    当前调试代码语句 & 当前遍历的ARG中的规则结点 \\
+    代码中变量的值 & ARG规则结点对应规则中各文字当前真值 \\
+    下一步调试的代码语句 & 下一条选中调试的规则 \\ 
+    对程序中局部代码的执行 & 对ARG中各依赖边与文字真值的赋值\\
+    \bottomrule
+    \end{tabular}
+    }
+    \end{table}
 
-在论文中插入表格的方法与图片类似，示例代码如下：
+    观察表\ref{tb:elementmap}可以发现，用户调试的过程实际上是在没有回答集或回答集不一致的情况下，通过交互对原子-规则图各结点与边进行标签的赋值，以构建部分解释空间，直到发现矛盾的过程，下面给出不一致ASP程序调试模型的定义。下面给出不一致ASP程序调试模型的定义。
+    \begin{definition}[]
+        给定一个不一致ASP程序 P，其调试模型$Dbg_{incst}(P, l, S, Q, U)$的输入包含如下五个部分：
+        \begin{itemize}[topsep=0pt]
+            \setlength\itemsep{-0.3em}
+            \item 待调试的不一致ASP程序$P$：该程序无变量，回答集为$Lit(P)$或不一致；
+            \item 调试的入口文字$l$：满足$l \in INCST(P)$，$INCST(P)$为计算得到的导致不一致的文字集合；
+            \item 当前调试步$S$：定义调试中从规则节点到文字节点为一步， 文字节点到规则节点为一步，表示用户当前执行调试进行到的步数；
+            \item 退出信号$Q$：表示用户在此步是否选择退出，$Q=t$表示该步骤结束后不继续调试，直接退出； $Q=f$表示该步骤结束后继续调试；
+            \item 用户交互信息$U$：用户在交互过程中进行的选择，包含：
+            \begin{itemize}[topsep=0pt, label=$\circ$]
+                \setlength\itemsep{-0.3em}
+                \item 当前步骤位于文字结点，系统无法为该文字标记真值，需要用户根据预期对该文字的真值进行指定；
+                \item 当前步骤位于文字结点，该文字结点与多条规则相连接时，用户指定查看某条规则的适用推出/阻塞无法推出的路径；
+                \item 当前步骤为规则结点，系统无法确定该规则是否应被适用，需要用户根据预期对该规则的适用情况进行指定；
+                \item 当前步骤位于规则结点，该规则结点与多个文字相连接时，用户指定查看规则体部文字的后续推导过程。
+            \end{itemize}
+        \end{itemize}
+        
+        该模型的输出如式\eqref{eq:dbgincstmodel}所示。
+        \begin{align}
+            Dbg_{incst}(P, l, s, Q_s, U_s)=
+            \begin{cases}
+                \text{文字结点} l &s = 0, Q = f\\
+                Dbg_{incst}(P, l, s-1, f, \phi) &s > 0, Q = t\\
+                Dbg_{incst}(P, l, s-1, f, U_{s-1}) \cup SubExp(P, s, U_s) &s > 0, Q = f\\
+                \emptyset &\text{否则}
+            \end{cases}
+        \end{align}\label{eq:dbgincstmodel}
+    \end{definition}
+    与解释模型类似，式\eqref{eq:dbgincstmodel}中仍然是递归定义的，其最核心的部分是$SubExp(P, s, U_s)$的生成，即用户选择进行下一步调试时所呈现的原子-规则子图。其中$U_s$为用户在第$s$步的交互信息，这一信息被定义为一个四元组$U_s=(UL^{true}_s, UL^{false}_s, UR^{ap}_s, UR^{bl}_s)$，为了便于算法的描述，表\ref{tb:usparameter}给出这一四元组的各元素符号表示及含义。
 
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\begin{table}[htbp]
-\centering
-\caption{东南大学院系列表}
-\label{tab:4_1}
-\begin{tabular}{cll}
-\toprule
-院系编号&\multicolumn{1}{c}{院系名称}&\multicolumn{1}{c}{院系英文译名}\\
-\midrule
-01  & 建筑学院      & School of Architecture  \\
-02  & 机械工程学院    & School of Mechanical Engineering \\
-03  & 能源与环境学院   & School of Energy and Environment \\
-04  & 信息科学与工程学院 & School of Information Science and Engineering \\
-05  & 土木工程学院    & School of Civil Engineering \\
-\bottomrule
-\end{tabular}
-\end{table}
-\end{lstlisting}
-\end{tcolorbox}
+    \begin{table}[!ht]
+        \caption{用户参数$U_s$说明}
+        \centering
+        \renewcommand\arraystretch{3}
+        \begin{tabular}{ccc}
+        \toprule \noalign{\vspace{-2ex}}
+        符号 & 含义 & 取值说明 \\ \hline
+        $UL^{true}_s$ & 第$s$步用户指定为真的文字集合 & \multirow{2}{*}{
+        \renewcommand\arraystretch{1}    
+        \begin{tabular}[c]{@{}c@{}}系统判断该步骤是否可为空，\\ 并给出一个可选文字集合，\\ 若不可为空，则从中选择\\ 一个或多个文字。\end{tabular}} \\
+        $UL^{false}_s$ & 第$s$步用户指定为假的文字集合 &  \\ \hline
+        $UR^{ap}_s$ & 第$s$步用户指定为适用的规则集合 & \multirow{2}{*}{
+        \renewcommand\arraystretch{1}    
+        \begin{tabular}[c]{@{}c@{}}系统判断该步骤是否可为空，\\ 并给出一个可选规则集合，\\ 若不可为空，则从中选择\\ 一个或多个规则。\end{tabular}} \\
+        $UR^{bl}_s$ & 第$s$步用户指定为阻塞的规则集合 &  \\ \bottomrule
+        \end{tabular}
+        \label{tb:usparameter}
+        \end{table}
 
-\noindent 编译后的效果如表 \ref{tab:4_1} 所示。
+    求解这一子图的过程如算法X所示。
 
-\begin{table}[htbp]
-\centering
-\caption{东南大学院系列表}
-\label{tab:4_1}
-\begin{tabular}{cll}
-\toprule
-院系编号 & \multicolumn{1}{c}{院系名称}       & \multicolumn{1}{c}{院系英文译名 }     \\
-\midrule
-01                       & 建筑学院      & School of Architecture                        \\
-02                       & 机械工程学院    & School of Mechanical Engineering              \\
-03                       & 能源与环境学院   & School of Energy and Environment              \\
-04                       & 信息科学与工程学院 & School of Information Science and Engineering \\
-05                       & 土木工程学院    & School of Civil Engineering \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\noindent 想要定义一个表格，首先需要声明浮动体环境：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\begin{table}[htbp]
-  \centering
-  \caption{东南大学院系表}
-  \label{tab:4_1}
-\end{table}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 在声明表格浮动体时，你也可以指定该表格的标题和标签，这与图片的声明类似。需要提醒的是，根据《东南大学研究生学位论文格式规定》\cite{seugs2015rule}第一条第五款第六则的要求，表格的标题应该位于表格的上方，而图片的标题应该出现在图片的下方。
-
-表格的具体内容在需要在浮动体中用{\codefont tabular}环境声明：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\begin{tabular}{cll}
-  \toprule
-  院系编号&\multicolumn{1}{c}{院系名称}&\multicolumn{1}{c}{院系英文译名}\\
-  \midrule
-  01  & 建筑学院      & School of Architecture  \\
-  02  & 机械工程学院    & School of Mechanical Engineering \\
-  03  & 能源与环境学院   & School of Energy and Environment \\
-  04  & 信息科学与工程学院 & School of Information Science and Engineering \\
-  05  & 土木工程学院    & School of Civil Engineering \\
-  \bottomrule
-\end{tabular}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent {\codefont tabular}声明后面紧跟着的是表格的纵向对其标准，比如我们的表格有3列，就需要使用3个字母分别指定这3列的对齐准则。你可以使用{\codefont l}表示左对齐，使用{\codefont r}表示右对齐，而使用{\codefont c}表示居中。下面你就可以以行为单位添加表格的内容，行与行间用两条反斜杠隔开，而行中的不同列间使用符号\&隔开。
-
-需要特别注意的是，学术论文一般要求所有表格采用三线表形式。对于三线表，其列间不允许存在竖分割线，而行间仅在表顶、表头与表身、表尾处用三条横线确定表格的结构。因此在表格绘制时，你需要手动指定三线的位置，并在相应的行间添加下面三条指令，分别指代顶线、中间线和尾线：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\toprule
-\midrule
-\bottomrule
-\end{lstlisting}
-\end{tcolorbox}
-
-事实上，在 \LaTeX 文本中插入表格确实需要付出很大的精力对表格的内容和样式进行调整，这也是很多初学者诟病 \LaTeX 的原因之一。为了方便你设计表格，我们向你推荐\href{http://www.tablesgenerator.com/}{一个网站}，该网站能够使用图形化界面创建表格，然后自动生成对应的 \LaTeX 代码。你只需要把代码复制到你的文档中，并稍加调整与修正即可。
-
-\section{算法}
-
-一些理学和工学专业的研究可能需要在论文中插入为代码或算法，本模板同样支持这一功能。示例代码如下：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\begin{algorithm}
-\caption{辗转相除法}
-\label{alg:4_1}
-\begin{algorithmic}
-\Require 一个整数$m$
-\Require 另一个整数$n$
-\Ensure $m$和$n$的最大公约数$r$
-\While {$n > 0$}
-    \State $t \leftarrow m ~ mod ~ n$
-    \State $m \leftarrow n$
-    \State $n \leftarrow t$
-\EndWhile
-\State $r \leftarrow t$
-\end{algorithmic}
-\end{algorithm}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 上述代码的编译结果如算法 \ref{alg:4_1} 所示。
-
-\begin{algorithm}
-\caption{辗转相除法}
-\label{alg:4_1}
-\begin{algorithmic}
-\Require 一个整数$m$
-\Require 另一个整数$n$
-\Ensure $m$和$n$的最大公约数$r$
-\While {$n > 0$}
-    \State $t \leftarrow m ~ mod ~ n$
-    \State $m \leftarrow n$
-    \State $n \leftarrow t$
-\EndWhile
-\State $r \leftarrow t$
-\end{algorithmic}
-\end{algorithm}
-
-和图片和表格类似，声明算法之前你首先要声明用于安放算法伪代码的浮动体：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\begin{algorithm}
-  \caption{辗转相除法}
-  \label{alg:4_1}
-\end{algorithm}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 随后使用{\codefont algorithmic}开始添加你的伪代码的具体内容。在这里由于篇幅所限，我们仅会提示一些{\codefont algorithmic}最简单的用法。对于算法的输入项，你需要使用{\codefont $\backslash$Require}命令指明，而输出项使用{\codefont $\backslash$Ensure}命令。对于声明和赋值语句，请你以{\codefont $\backslash$State}开头，而对于判断、循环语句，应该使用如下的形式表达：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\If \EndIf
-\While \EndWhile
-\For \EndFor
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 请注意，这些语句必须两两配对，否则编译时会出现错误。想要了解更多{\codefont algorithmic}的用法和范例，请自行百度或者参考其官方文档。
-
-\section{公式环境}
-
-很多时候，你的论文可能会涉及公式和逻辑推导，这时你可能需要插入数学公式环境。\LaTeX 中的数学公式分为两种，分别是行内公式和行间公式环境。当你想要在文本叙述中插入数学符号时，你需要的是行内公式。你只需要用两个\$符号包裹你的数学符号即可，就像这样：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-对于$\forall \theta \in \Theta$，如果有$\theta$使得...
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 编译后的结果是这个样子的：
-
-对于$\forall \theta \in \Theta$，如果有$\alpha$使得...
-
-但是当你想要表达数学逻辑的推导或者方程的计算时，你可能需要整块行间的区域进行系统性地阐述，这时你需要使用行间公式环境。就像这样：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\begin{equation}
-  \label{eq:4_1}
-  f(x) = \frac{f(x_0)}{0!} + \frac{f'(x_0)}{1!}(x-x_0) + \dots + \frac{f^{(0)}(x_0)}{n!}(x-x_0)^n + R_n(x)
-\end{equation}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 上述代码编译后将呈现这样的效果：
-
-\begin{equation}
-  \label{eq:4_1}
-  f(x) = \frac{f(x_0)}{0!} + \frac{f'(x_0)}{1!}(x-x_0) + \dots + \frac{f^{(0)}(x_0)}{n!}(x-x_0)^n + R_n(x)
-\end{equation}
-
-\noindent 公式 \ref{eq:4_1} 展示了单行行间公式的表达方式。有时候你还可能需要展示多行的公式，并且这些公式还要按照某些方式对齐。这时候你需要在{\codefont equation}环境中再嵌套一个{\codefont aligned}环境。在每行需要对齐的部分，你可以使用{\codefont \&}符号显式地指明，就像这样：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\begin{equation}
-  \label{eq:4_2}
-  \begin{aligned}
-  \int_{-\infty}^{\infty}f(x)dx & = \frac{1}{2\lambda}\int_{-\infty}^{\infty}e^{-\frac{|x-\mu|}{\lambda}}dx \\
-  & = \frac{1}{2}\int_{-\infty}^{\infty}e^{-|t|}dt \\
-  & = 1
-  \end{aligned}
-\end{equation}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 上述代码编译后将呈现这样的效果：
-
-\begin{equation}
-  \label{eq:4_2}
-  \begin{aligned}
-  \int_{-\infty}^{\infty}f(x)dx & = \frac{1}{2\lambda}\int_{-\infty}^{\infty}e^{-\frac{|x-\mu|}{\lambda}}dx \\
-  & = \frac{1}{2}\int_{-\infty}^{\infty}e^{-|t|}dt \\
-  & = 1
-  \end{aligned}
-\end{equation}
-
-我们只展示了一小部分数学公式的语法，如果你有更复杂的表达需求，请自行百度。
-
-\section{引用浮动体}
-
-我们已经在 \ref{sec:main_body} 节中介绍了正文章节的引用，并在本章展示了对图、表、算法和公式的引用。为了使你在面临大量标签时也能够快速找到你需要引用的内容，同时也为了提升你文档的结构与条理，我们建议你分别用不同的前缀表记不同类型的引用对象，就像这样：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\label{chp:chapter_name}
-\label{sec:section_name}
-\label{subsec:subsection_name}
-\label{fig:figure_name}
-\label{tab:table_name}
-\label{alg:algorithm_name}
-\label{eq:equation_name}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 你也可以设计你自己的引用标签，上面的示例只是我们的一个建议。很多编辑器在你输入{\codefont ref}时会自动弹出代码提示，自定义标签配合代码提示能够帮助你更快索引到你想要的引用标签。
-
-\section{代码环境}
-
-一些计算机、软件、电子等专业的毕业论文可能需要展示少量代码，本模板同样也提供了代码环境。比如，下面我们展示了一个Java程序：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=Java]
-public static void main(String[] args) {
-    System.out.println("你好世界");
-}
-\end{lstlisting}
-\end{tcolorbox}
-
-想要实现这样的效果，你只需要将代码包裹在{\codefont lstlisting}环境中。你还可以指定代码所属的语言，这样{\codefont lstlisting}环境就可以为你实现一定程度上的代码高亮。想要查询你所使用的计算机语言是否被{\codefont lstlisting}支持，请直接参阅{\codefont lstlisting}的官方文档。
-
-\section{术语与符号}
-
-你的论文中可能涉及到了大量的符号、英文缩写或术语，你可以在文中对这些符号进行说明，就像这样：
-
-\begin{tcolorbox}
-\begin{lstlisting}[language=TeX]
-\nomenclature{PDF}{Portable Document Format}
-\end{lstlisting}
-\end{tcolorbox}
-
-\noindent 你应该在{\codefont nomenclature}命令后的第一对括号中填写术语或符号名称，下一对括号中填写对术语或符号的解释或定义。当论文编译时，这些术语与符号将会被自动列入目录页后的术语与符号表，并按照英文字母序排列。
+    \begin{algorithm2e}[H]
+        \label{alg:dbgSubExp}
+        \DontPrintSemicolon
+        \SetNoFillComment
+        \SetKwInput{Initialization}{初始化}
+        \SetKwInput{KwIn}{输入}
+        \SetKwInput{KwOut}{输出}
+        \setstretch{1.15}
+        \caption{程序$P$单步调试子图生成算法}
+        \KwIn{不一致ASP程序$P$，调试步$S$，用户指定的起点文字$l$，用户指定的交互信息$U_s$}
+        \KwOut{单步生成的子图}
+        \setcounter{AlgoLine}{0}
+        \everypar={\nl}
+        $ARG\_P \gets getARG(P)$ \tcp*[l]{获取程序的原子-规则图}
+        $l \gets getAllNegCycles(ARG\_P)$ \tcp*[l]{获取原子规则图中的所有负环}
+        \tcc{函数c$omputeIncstLitSet$返回程序$P$的不一致情形$incstCond$与导致不一致的集合$incstLit$}
+        $incstCond, incstLit \gets computeIncstLitSet(P)$\;
+        \eIf {$incstCond \mathrel{\mathtt{!=}} neg\_loop$}{
+            \Return $incstLit$
+        }
+        {
+            $subGraph \gets \emptyset$\;
+            \ForEach{环$n\_cycle$ 在 $P$所有规则}{
+                \If {$n\_cycle \cap incstLit \neq \emptyset$}{
+                $subGraph \gets subGraph \cup n\_cycle$
+                }
+            }
+            \Return $subGraph$
+        }
+    \end{algorithm2e}
+\section{本章小结}

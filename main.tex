@@ -1,10 +1,10 @@
 \documentclass[algorithmlist,figurelist,tablelist,nomlist]{seumasterthesis}
-
+\usepackage{setspace}
 \begin{document}
 
 %% ----------------------------------------------------------------------------
 %%                                 Meta Data
-%% ----------------------------------------------------------------------------
+%% ---------------------RR-------------------------------------------------------
 \categorynumber{TP15}           % Chinese Library Classification
 \UDC{001.9}                     % Universal Decimal Classification
 \secretlevel{公开}                % Secret Level
@@ -14,50 +14,50 @@
 %%                           Thesis Title and Spine
 %% ----------------------------------------------------------------------------
 \title
-    {东南大学 \LaTeX 论文模板使用手册}                                      % Thesis Title
-    {如何优雅地撰写硕士研究生毕业论文}                                          % Thesis Subtitle
-    {Southeast University \LaTeX ~Thesis Template User Manual}  % Thesis English Title
-    {How to Write a Master Thesis in an Elegant Way}            % Thesis English Subtitle
+    {ASP程序的解释与调试}                                      % Thesis Title
+    {系统的设计与实现}                                          % Thesis Subtitle
+    {Design and Implementation of}  % Thesis English Title
+    {Explanation and Debugging System for ASP Program}            % Thesis English Subtitle
 
 \spine
-    {东南大学 \rotatebox{270}{\raisebox{2.5pt}{LaTeX}} 论文模板使用手册}      % Spine Title
+    {ASP程序的解释与调试 \rotatebox{270}{\raisebox{2.5pt}{LaTeX}} 论文模板使用手册}      % Spine Title
     {}                                                          % Spine Subtitle
 
 %% ----------------------------------------------------------------------------
 %%                             Author and Advidor
 %% ----------------------------------------------------------------------------
 \author
-    {秦川}                        % Author Name in Chinese
-    {QIN Chuan}                 % Author Name in English
+    {胡闰秋}                        % Author Name in Chinese
+    {HU Runqiu}                 % Author Name in English
 
 \advisor
-    {张广军}                       % Advisor Name (Chinese)
-    {ZHANG Guang-Jun}           % Advisor Name (English)
-    {Prof.}                     % Advisor Title (English)
+    {张志政\ \ 副教授}                       % Advisor Name (Chinese)
+    {ZHANG Zhi-zheng}           % Advisor Name (English)
+    {Associate Prof.}                     % Advisor Title (English)
 
-\coadvisor
-    {程光}                        % Co-advisor Name (Chinese)
-    {CHENG Guang}               % Co-advisor Name (English)
-    {Prof.}                     % Co-advisor Title (English)
+% \coadvisor
+%     {程光}                        % Co-advisor Name (Chinese)
+%     {CHENG Guang}               % Co-advisor Name (English)
+%     {Prof.}                     % Co-advisor Title (English)
 
 %% ----------------------------------------------------------------------------
 %%                              Thesis Defence
 %% ----------------------------------------------------------------------------
 \engthesistype{应用研究}            % Engineering Master Thesis Type
 \degreetype                     % Degree Type
-    {工学硕士}
+    {工程硕士}
     {Master of Engineering}
-\major{生物医学工程}                  % First-level Discipline Name
-\submajor{神经信息工程}               % Second-level Discipline Name
-\defenddate{2020年1月20日}         % Defence Date
-\authorizedate{2020年1月23日}      % Degree Award Date
-\committeechair{齐康}             % Chairman of Defence Committee
-\reviewer{王建国}{韩冬青}             % Thesis Reviewer(s)
+\major{计算机技术（专业学位）}                  % First-level Discipline Name
+\submajor{}               % Second-level Discipline Name
+\defenddate{2021年6月x日}         % Defence Date
+\authorizedate{2021年6月x日}      % Degree Award Date
+\committeechair{不知道1}             % Chairman of Defence Committee
+\reviewer{不知道2}{不知道3}             % Thesis Reviewer(s)
 \department                     % Faculty or Department
-    {网络空间安全学院}
-    {School of Cyberspace Security}
+    {计算机科学与工程学院}
+    {School of Computer Science and Engineering}
 \seuthesisthanks                % Short Acknowledgement
-    {本文的部分工作受国家自然基金 No. wdnmd666 的支持与帮助，在此表示感谢。}
+    {本文的部分工作受国家自然基金 No. xxxxxx 的支持与帮助，在此表示感谢。}
 
 %% ----------------------------------------------------------------------------
 %%                                  Cover
@@ -69,7 +69,9 @@
 %%                          Abstract and Contents
 %% ----------------------------------------------------------------------------
 \input{chapters/abstract}
+\begin{spacing}{1.2}
 \tableofcontents
+\end{spacing}
 \listofothers
 
 %% ----------------------------------------------------------------------------
@@ -80,15 +82,15 @@
 \input{chapters/chapter2}
 \input{chapters/chapter3}
 \input{chapters/chapter4}
-\input{chapters/chapter5}
-\input{chapters/chapter6}
+% \input{chapters/chapter5}
+% \input{chapters/chapter6}
 
 %% ----------------------------------------------------------------------------
 %%            Acknowledgement, Appendix, Bibliography and Resume
 %% ----------------------------------------------------------------------------
 \input{chapters/acknowledgement}
 \thesisbib{seumasterthesis}
-\input{chapters/appendix}
+% \input{chapters/appendix}
 \input{chapters/resume}
 
 \end{document}

@@ -9,7 +9,7 @@
 %%  Copyright (C) 2019 Rui Song, email: wurahara@163.com
 %%  License: GNU General Public License, version 3
 
-
+\PassOptionsToPackage{quiet}{fontspec}
 \NeedsTeXFormat{LaTeX2e}[1999/12/01]
 \ProvidesClass{seumasterthesis}[2020/05/10 3.4.1 The LaTeX template for master thesis of Southeast University]
 \typeout{Document Class `seumasterthesis' 3.4.1 by Rui Song (2020/05/10)}
@@ -38,10 +38,14 @@
 \ProcessOptions
 \LoadClass[twoside,a4paper,zihao=-4,UTF8,openright]{ctexrep}
 \RequirePackage[top=1.1in,bottom=1.1in,left=2.5cm,right=2.5cm,a4paper]{geometry}
+\parskip 0.5ex plus 0.25ex minus 0.25ex
 \RequirePackage[titles]{tocloft}
 \RequirePackage{fontspec}
 \RequirePackage{datetime}
 \RequirePackage{url}
+% \RequirePackage{courier}
+\setcounter{secnumdepth}{3}
+
 
 %% ----------------------------------------------------------------------------
 %%                          Font and Font Size
@@ -50,11 +54,20 @@
 %% Font
 \RequirePackage[font=small]{caption}
 \setmainfont[Mapping=tex-text]{Times New Roman}
-\renewcommand{\cftchapleader}{\bfseries\cftdotfill{\cftdotsep}}
-\newcommand{\cmufont}{\fontspec{CMU Serif}}
-%\newcommand{\codefont}{\fontspec{Consolas}}                %% Microsoft Windows
-\newcommand{\codefont}{\fontspec{Ubuntu Mono}}              %% Ubuntu GNU/Linux
+% \renewcommand\cftchapafterpnum{\vskip6pt}
+% \renewcommand\cftsecafterpnum{\vskip6pt}
+% \renewcommand\cftsubsecafterpnum{\vskip6pt}
 
+% Adjust sectional unit title fonts in ToC
+\renewcommand\cftchappagefont{\normalfont}
+\renewcommand{\cftchapleader}{\songti\cftdotfill{\cftdotsep}}
+\renewcommand{\cftchapfont}{\songti}
+\renewcommand{\cftsecfont}{\songti}
+\renewcommand{\cftsubsecfont}{\songti}
+\setlength{\cftbeforechapskip}{3pt}
+\newcommand{\cmufont}{\fontspec{CMU Serif}}
+\newcommand{\codefont}{\fontspec{Consolas}}                %% Microsoft Windows
+% \newcommand{\codefont}{\fontspec{Ubuntu Mono}}              %% Ubuntu GNU/Linux
 %% Font size
 \newcommand{\chuhao}{\fontsize{42bp}{46bp}\selectfont}
 \newcommand{\xiaochuhao}{\fontsize{36bp}{40bp}\selectfont}
@@ -70,26 +83,40 @@
 \newcommand{\liuhao}{\fontsize{7.5bp}{9bp}\selectfont}
 \newcommand{\xiaoliuhao}{\fontsize{6.5bp}{7.5bp}\selectfont}
 \newcommand{\qihao}{\fontsize{5.5bp}{6.5bp}\selectfont}
-
 \ctexset{
     %% Chapter: three, bold, centered
     chapter/format=\centering,
     chapter/nameformat=\sanhao\heiti,
     chapter/numberformat=\sanhao\heiti,
     chapter/titleformat=\sanhao\heiti,
-    chapter/beforeskip=0pt,
+    chapter/beforeskip=0bp,
+    chapter/afterskip=30bp,
+    chapter/fixskip=true,
     %% Section: four, bold song, lefted
     section/format=\raggedright,
     section/nameformat={\large\bfseries},
     section/numberformat={\large\bfseries},
     section/titleformat={\sihao\bfseries},
+    % section/beforeskip=0.6em,
+    % section/afterskip=0.6em,
+    section/beforeskip = 18bp plus 1ex minus .2ex,
+    section/afterskip = 24bp plus .2ex,
+    section/fixskip = true,
     %% Subsection: small four, bold, lefted
     subsection/format=\raggedright,
     subsection/nameformat={\xiaosihao\heiti},
     subsection/numberformat={\xiaosihao\heiti},
     subsection/titleformat={\xiaosihao\heiti},
+    % subsection/beforeskip=0.6em,
+    % subsection/afterskip=0.6em,
+    subsection/beforeskip = 14bp plus 1ex minus .2ex,
+    subsection/afterskip = 14bp plus .2ex,
+    subsection/fixskip = true,
     %% Subsubsection
     subsubsection/format=\xiaosihao\bfseries\raggedright,
+    subsubsection/beforeskip = 14bp plus 1ex minus .2ex,
+    subsubsection/afterskip = 14bp plus .2ex,
+    subsubsection/fixskip = true,
     %% List of figure and table
     contentsname={目 \quad 录},
     listfigurename={插图目录},
@@ -103,6 +130,9 @@
 \RequirePackage{amsmath}
 \RequirePackage{amssymb}
 \RequirePackage{amsthm}
+\RequirePackage{listings}
+\RequirePackage{minted}
+% \RequirePackage{tabularx}
 \numberwithin{equation}{chapter}
 \newcommand{\dif}{\mathrm{d}}
 \DeclareMathOperator*{\argmin}{argmin}
@@ -115,23 +145,102 @@
 \RequirePackage[mathscr]{eucal}
 \RequirePackage{eufrak}
 \RequirePackage{bm}
+\RequirePackage{longtable}
+\RequirePackage{array}
+\RequirePackage{rotating}
+\RequirePackage{tablefootnote}
+\RequirePackage{makecell}
+\RequirePackage[export]{adjustbox}
+\RequirePackage{footmisc}
+\RequirePackage{xpinyin}
+\RequirePackage{enumitem}
+% \RequirePackage{subfig}
+% \RequirePackage[labelfont=bf]{caption}
+\renewcommand*{\footnotelayout}{\tiny\songti}
 
+\RequirePackage{expl3}
+
+\DeclareSymbolFont{italics}{\encodingdefault}{\rmdefault}{m}{it}
+\DeclareSymbolFontAlphabet{\mathit}{italics}
+
+\ExplSyntaxOn
+\int_step_inline:nnnn { `A } { 1 } { `Z }
+ {
+  \exp_args:Nf \DeclareMathSymbol{\char_generate:nn{#1}{11}}{\mathalpha}{italics}{#1}
+ }
+\int_step_inline:nnnn { `a } { 1 } { `z }
+ {
+  \exp_args:Nf \DeclareMathSymbol{\char_generate:nn{#1}{11}}{\mathalpha}{italics}{#1}
+ }
+\ExplSyntaxOff
 %% ----------------------------------------------------------------------------
 %%                        Terminology and Symbols
 %% ----------------------------------------------------------------------------
 
 \RequirePackage{nomencl}
-\makenomenclature
+\RequirePackage{etoolbox}
+\RequirePackage{ragged2e}
+\RequirePackage{siunitx}
+\RequirePackage{mathtools}
+\newtheoremstyle{definition}
+{.6ex plus .6ex minus .6ex}
+{.6ex plus .6ex minus .6ex}     
+{}
+{}
+{\songti\bfseries}
+{}
+{1em}
+{}
+\theoremstyle{definition}
+\newtheorem{theorem}{\indent 定理}[chapter]
+\newtheorem{lemma}[theorem]{\indent 引理}
+\newtheorem{proposition}[theorem]{\indent 命题}
+\newtheorem{corollary}[theorem]{\indent 推论}
+\newtheorem{definition}{\indent 定义}[chapter]
+\newtheorem{example}{\indent 例}[chapter]
+\newtheorem{remark}{\indent 注}[section]
+\newenvironment{solution}{\begin{proof}[\indent\bf 解]}{\end{proof}}
+\renewcommand{\proofname}{\indent\bf 证明}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\newcommand{\DimensUnits}[1]{\hfill\makebox[4em]{#1}\ignorespaces}
+\newcommand{\DefinitionCol}[1]{\parbox[c]{12em}{\centering #1}\ignorespaces
+}
+
+\newcommand{\nomsubtitle}[1]{\item[\large\bfseries #1]}
+
+\renewcommand\nomgroup[1]{\def\nomtemp{\csname nomstart#1\endcsname}\nomtemp}
+
+
+\newcommand{\nomstartH}{\nomsubtitle{符号表}%
+  \item[\bfseries 符号]\DefinitionCol{\textbf{含义}}}
+\newcommand{\nomstartG}{\nomsubtitle{缩略词表}%
+  \item[\bfseries 英文缩略词]%
+  \DefinitionCol{\textbf{英文全称}}\quad\quad\quad\quad\DefinitionCol{\textbf{中文含义}}}
+\renewcommand*{\nompreamble}{\markboth{\nomname}{\nomname}}
+
+% \newcommand{\nomdescr}[1]{\parbox[t]{5cm}{\RaggedRight #1}}
+\newcommand{\nomdescr}[1]{\parbox[c]{6em}{#1}\ignorespaces
+}
+\newcommand{\nomwithdim}[4]{\nomenclature[#1]{#2}%
+{#3\quad\quad\quad\quad#4}}
+\newcommand{\nomtypeH}[3][]{\nomenclature[H#1]{#2}{\DefinitionCol{#3}}}
+\newcommand{\nomtypeG}[4][]{\nomwithdim{G#1}{#2}{\DefinitionCol{#3}}{\DefinitionCol{#4}}}
+\newcommand\semiLarge{\@setfontsize\semiLarge{14pt}{18}}
 \newcommand{\setnomname}[1]{\renewcommand\nomname{#1}}
-\renewcommand{\nomname}{术语与符号列表}
+\renewcommand{\nomname}{缩略词与数学符号表}
+\setlength{\nomitemsep}{0.6cm}
+\makenomenclature
 
 %% ----------------------------------------------------------------------------
 %%                          Algorithm Settings
 %% ----------------------------------------------------------------------------
 
 \RequirePackage{algorithm}
-\RequirePackage{algorithmicx}
+\RequirePackage[ruled,linesnumbered,vlined,algo2e]{algorithm2e}
 \RequirePackage{algpseudocode}
+\RequirePackage[noend]{algcompatible}
+\newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{blue}{#1}}
+\SetCommentSty{mycommfont}
 \numberwithin{algorithm}{chapter}
 \renewcommand{\algorithmicrequire}{\textbf{输入:}}
 \renewcommand{\algorithmicensure}{\textbf{输出:}}
@@ -149,7 +258,7 @@
 %%                          Code Env Settings
 %% ----------------------------------------------------------------------------
 
-\RequirePackage{tcolorbox}
+\RequirePackage[most]{tcolorbox}
 \tcbset{
     size=title,
     boxrule=0.35mm,
@@ -167,10 +276,31 @@
     tabsize=4,
     columns=flexible,
     numberstyle= \small,
-    keywordstyle= \color{blue},
+    keywordstyle= \color{black},
     commentstyle=\color{gray},
     frame=none
 }
+
+\newtcbox{\dashedbox}[1][]{
+  math upper,
+  baseline=0.4\baselineskip,
+  equal height group=dashedbox,
+  nobeforeafter,
+  tcbox raise base,
+  colback=yellow,
+  boxrule=0pt,
+  enhanced jigsaw,
+  boxsep=0pt,
+  top=3pt,
+  bottom=3pt,
+  left=2pt,
+  right=2pt,
+  borderline horizontal={0.5pt}{0pt}{dashed},
+  borderline vertical={0.5pt}{0pt}{dashed},
+  #1
+}
+% \newtcbox{\alignbox}[1][]{before=\centering, drop fuzzy shadow, enhanced, colback=white, sharp corners, colframe=red, fonttitle=\bfseries, title=#1, center title}
+
 
 %% ----------------------------------------------------------------------------
 %%                          Table & Figure Settings
@@ -182,10 +312,14 @@
 \captionsetup[figure]{labelsep=space}
 \RequirePackage{graphicx}
 \RequirePackage{booktabs}
+\RequirePackage{setspace}
 \renewcommand{\toprule}{\specialrule{.08em}{0pt}{.5ex}}
 \renewcommand{\midrule}{\specialrule{.03em}{.5ex}{.5ex}}
 \renewcommand{\bottomrule}{\specialrule{.08em}{.5ex}{0pt}}
 \RequirePackage{subfig}
+
+% \RequirePackage{subcaption}
+% \RequirePackage{float}% just for the example
 
 %% ----------------------------------------------------------------------------
 %%                         Reference Hyper-links
@@ -198,12 +332,12 @@
     \hypersetup{colorlinks=true}
 \fi
 \hypersetup{
-    linkcolor=blue,
+    linkcolor=black,
     anchorcolor=black,
-    citecolor=red,
-    filecolor=magenta,
-    menucolor=red,
-    urlcolor=magenta
+    citecolor=black,
+    filecolor=black,
+    menucolor=black,
+    urlcolor=black
 }
 
 %% ----------------------------------------------------------------------------
@@ -212,8 +346,8 @@
 
 \AtEndDocument{\backcover}
 \newcommand{\backcover} {
-    \clearpage
-    \thispagestyle{empty}\cleardoublepage\mbox{ }
+    % \clearpage
+    % \thispagestyle{empty}\cleardoublepage\mbox{ }
     \clearpage
     \thispagestyle{empty}
     \begin{picture}(0,0)
@@ -241,6 +375,42 @@
     \fancyhead[CE]{\xiaowuhao\universityname{}\@thesistype}
     \fancyfoot[CO,CE]{\thepage}
 }
+\pagestyle{seustyle}
+\fancypagestyle{plain} {
+    \fancyhf{}
+    \fancyhead[CO]{\xiaowuhao\leftmark}
+    \fancyhead[CE]{\xiaowuhao\universityname{}\@thesistype}
+    \fancyfoot[CO,CE]{\thepage}
+}
+\fancypagestyle{zhcn-abstract} {
+    \fancyhf{}
+    \fancyhead[CO]{\xiaowuhao{摘要}}
+    \fancyhead[CE]{\xiaowuhao\universityname{}\@thesistype}
+    \fancyfoot[CO,CE]{\thepage}
+}
+
+\fancypagestyle{en-abstract} {
+    \fancyhf{}
+    \fancyhead[CO]{Abstract}
+    \fancyhead[CE]{\xiaowuhao\universityname{}\@thesistype}
+    \fancyfoot[CO,CE]{\thepage}
+}
+
+\fancypagestyle{resume} {
+    \fancyhf{}
+    \fancyhead[CO]{\xiaowuhao{攻读硕士学位期间的研究成果}}
+    \fancyhead[CE]{\xiaowuhao\universityname{}\@thesistype}
+    \fancyfoot[CO,CE]{\thepage}
+}
+
+\fancypagestyle{acknowledgement} {
+    \fancyhf{}
+    \fancyhead[CO]{\xiaowuhao{致谢}}
+    \fancyhead[CE]{\xiaowuhao\universityname{}\@thesistype}
+    \fancyfoot[CO,CE]{\thepage}
+}
+
+
 \renewcommand{\headrulewidth}{0.4pt}
 \RequirePackage{eso-pic}
 
@@ -382,6 +552,7 @@
         \thispagestyle{thanksstyle}
     \fi
 }
+
 \fancypagestyle{thanksstyle}{
     \fancyhf{}
     \fancyfoot[L]{
@@ -550,13 +721,13 @@
             \end{tabular}
         \end{center}
     \end{minipage}
-
+    % \vspace{-2cm}
     %% Degree application and defense information
-    \hspace*{21cm}
+    \hspace*{21.5cm}
     \begin{minipage}{16cm}
         \begin{center}
             \setlength{\tabcolsep}{10pt}
-            \renewcommand{\arraystretch}{2.0}
+            \renewcommand{\arraystretch}{1.8}
             \begin{tabular}{ll}
                 \CoverBottomOption{\appdegreepre}{\@degreetype} &
                 \CoverBottomOption{\authorizeorganizationpre}{\@authorizeorganization} \\
@@ -581,6 +752,7 @@
 
     %% Date
     \vfill
+    % \vspace{-0.4cm}
     \hspace*{20.5cm}
     {\songti\sihao\centerline{\todaychn} \par}
 
@@ -688,7 +860,7 @@
         \setlength{\tabcolsep}{0pt}
         \renewcommand{\arraystretch}{2.0}
         \begin{tabular}{cr}
-            \makebox[3.5cm][s]{\xiaoerhao\songti\authorpre: } &
+            \makebox[3.5cm][s]{\sanhao\songti\authorpre: } &
             \underline{
                 \makebox[6cm][s] {
                     \hspace*{1.7cm}
@@ -722,7 +894,7 @@
     %% Degree application and defense information
     \begin{center}
         \setlength{\tabcolsep}{10pt}
-        \renewcommand{\arraystretch}{2.0}
+        \renewcommand{\arraystretch}{1.8}
         \begin{tabular}{ll}
             \CoverBottomOption{\appdegreepre}{\@degreetype} &
             \CoverBottomOption{\authorizeorganizationpre}{\@authorizeorganization} \\
@@ -885,15 +1057,16 @@
 \renewenvironment{abstract}[1] {
     \pagenumbering{Roman}
     \clearpage
-    \thispagestyle{empty}
+    \pagestyle{empty}
     \cleardoublepage
-    \thispagestyle{plain}
+    \pagestyle{plain}
     \newcommand{\@keywords}{#1}
     \hypersetup{pdfkeywords={\@keywords}}
     \phantomsection
     \addcontentsline{toc}{chapter}{\@abstracttoc}
     \chapter*{\@abstracttitle}
     \setcounter{page}{1}
+    \thispagestyle{zhcn-abstract}
 }
 {
     \par
@@ -920,6 +1093,7 @@
         chapter/nameformat=\large\heiti,
         chapter/titleformat=\large\heiti
     }
+    \thispagestyle{en-abstract}
 }
 {
     \par
@@ -984,6 +1158,7 @@
     \phantomsection
     \addcontentsline{toc}{chapter}{\@acktoc}
     \chapter*{\@acktitle}
+    \thispagestyle{acknowledgement}
 }
 
 %% ----------------------------------------------------------------------------
@@ -1007,5 +1182,17 @@
     \phantomsection
     \addcontentsline{toc}{chapter}{#1}
     \chapter*{#1}
+    \thispagestyle{resume}
 }
+% \pdfstringdefDisableCommands{%
+%   \let\enspace\empty  % this causes the warning for \kern
+%   \let\noindent\empty % this causes the warning for \indent
+%   \let\hskip\empty
+% }
+\setlength{\headheight}{15pt}
+% \PassOptionsToPackage{quiet}{xeCJK}
+\RequirePackage{multirow}
+\RequirePackage{cellspace}
+\setlength\cellspacetoplimit{4pt}
+\setlength\cellspacebottomlimit{4pt}
 \endinput

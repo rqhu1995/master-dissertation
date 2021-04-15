@@ -1,0 +1,1 @@
+rm -f *.aux *.bak *.bbl *.dvi *.blg *.thm *.toc *.out *.lof *.log *.lol *.lot *.nav *.snm *.ilg *.loa *.nlo *.nls *.fdb_latexmk *.synctex.gz
