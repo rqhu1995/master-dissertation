@@ -319,7 +319,7 @@
 \RequirePackage{subfig}
 
 % \RequirePackage{subcaption}
-% \RequirePackage{float}% just for the example
+\RequirePackage{float}% just for the example
 
 %% ----------------------------------------------------------------------------
 %%                         Reference Hyper-links

@@ -1,4 +1,4 @@
-\chapter{ASP程序调试模型的设计}
+\chapter{不一致ASP程序调试模型的设计}
 \label{chp:debug}
 在定义了ASP程序的解释模型后，本节将基于该解释模型，进一步定义ASP程序的调试模型。考虑ASP程序的调试场景，大致可以分为两种不同的情况：
 \begin{enumerate}[topsep=0pt]
@@ -6,12 +6,12 @@
     \item 程序是一致的，但用户预期出现（不应出现）的文字未出现（出现）在回答集中；
     \item 程序是不一致的，但没有回答集或回答集为程序中所有的文字\cite{schulz2015characterising}。
 \end{enumerate}
-现有调试研究主要集中对不一致程序进行，因此本章首先介绍不一致逻辑程序的模型，然后再介绍一致性程序调试模型。
-\section{不一致ASP程序的调试}
-对于不一致的ASP程序，其调试的难点通常在于面对\textit{UNSATISFIABLE}的求解结果，即使用户心中已有明确期待的一个或多个回答集文字，程序的问题也不一定出现与这些文字在相关的规则或事实中，也可能是其他部分的矛盾导致了整个回答集都无法获得。当程序规模较大或程序逻辑较为复杂的时候，用户只能试探性地猜测可能出现问题的规则将其从程序中删除，再尝试对剩余部分求解。这样的行为效率较低，并且删除掉的规则未必就是存在问题的规则。因此，亟需在程序编写完成后对其进行一个静态分析，以快速定位导致程序不一致问题的文字，提示用户对包含这些文字（及其关联规则）重点关注，推荐作为调试的入口；另一方面，为了更真实地将命令式语言的调试风格引入ASP程序，考虑设计一个单步调试模型，使得规则间无序的ASP程序在用户的交互下按照交互步有序执行，直到发现程序中的问题。本节分别介绍基于程序静态分析的调试入口推荐和不一致ASP程序的单步调试模型设计。
-\subsection{基于程序静态分析的调试入口推荐}
+
+现有的研究普遍将调试集中在不一致程序上，对于一致性程序，当回答集非预期时，用户可以通过本文的解释模型查看该文字真值出现的具体原因。因此，本章在设计调试模型时，也将重点放在不一致逻辑程序的模型中。首先介绍静态分析的调试入口推荐，给出推荐算法；进一步基于调试入口设计基于解释空间的不一致程序调试模型，给出模型的定义及其核心交互算法。
+\section{基于程序静态分析的调试入口推荐}
+对于不一致的ASP程序，其调试的难点通常在于面对\textit{UNSATISFIABLE}的求解结果，即使用户心中已有明确期待的一个或多个回答集文字，程序的问题也不一定出现与这些文字在相关的规则或事实中，也可能是其他部分的矛盾导致了整个回答集都无法获得。当程序规模较大或程序逻辑较为复杂的时候，用户只能试探性地猜测可能出现问题的规则将其从程序中删除，再尝试对剩余部分求解。这样的行为效率较低，并且删除掉的规则未必就是存在问题的规则。因此，亟需在程序编写完成后对其进行一个静态分析，以快速定位导致程序不一致问题的文字，提示用户对包含这些文字（及其关联规则）重点关注，推荐作为调试的入口；另一方面，为了更真实地将命令式语言的调试风格引入ASP程序，考虑设计一个单步调试模型，使得规则间无序的ASP程序在用户的交互下按照交互步有序执行，直到发现程序中的问题。本节介绍基于程序静态分析的调试入口推荐及其算法。
 对不一致ASP程序的研究已经有很多丰富的结论，其中Schulz等人对不一致程序给出了三种情形的讨论\cite{schulz2015characterising}，全面系统地找到了导致ASP程序不一致的原因。该讨论基于良基模型，并且能够指出程序中造成不一致的“元凶文字集（Culprit Set）”。这一过程可作为ASP程序调试模型中调试前进行的一次静态程序分析，并且该过程不依赖于回答集。根据是否具有良基模型，下面将介绍这三种原因，之后进一步详细讨论造成不一致的具体文字或规则，并基于这三种原因给出基于程序静态分析的调试入口推荐算法。
-\subsubsection{不一致程序的三种情形}
+\subsection{不一致程序的三种情形}
 实际上，程序中的“否定”（包括强否定与NAF否定）是造成逻辑程序不一致的根本原因。Gelfond与Lifschitz等人已经证明，如果一个逻辑程序不含这两种否定，该程序在稳定模型语义下一定是一致的\cite{gel91b}。对于存在否定的程序，其不一致原因的产生又可以归因于两种情况：1）回答集是程序中全部的文字；2）程序不存在回答集。通过考察程序的良基模型，这两种情况进一步又可以细分为如下3种情景，下面分别通过例子加以说明。
 
 \subsubsection*{情形1：程序$P$没有良基模型，且程序的唯一回答集是$Lit(P)$}
@@ -67,7 +67,7 @@
     程序\hyperref[prg:p9]{$P_9$}有良基模型$\langle \emptyset, \emptyset \rangle$。该程序没有回答集，假设其存在回答集$S$，观察各规则可以发现，文字$s, r$有且仅有一个会出现在$S$中。若$s \in S$，则$p, \lnot p \in S$；若$r \in S$，则$q, \lnot q \in S$，因此$S$只可能是$Lit(P_9)$。又由于$P_9^{Lit(P_9)}=\emptyset$，因此$P_9^{Lit(P_9)}$的唯一回答集为$\emptyset \subset Lit(P_9)$，$Lit(P_9)$不是$P_9$的回答集，进而得到$P_9$没有回答集。与例\ref{eg:4.2}不同的是，此处导致互补文字出现的虽然仍NAF导致，但NAF成立的条件为程序中的负环（$r_1, r_4\ \text{与 }\ s, r$）。
 \end{example}
 
-\subsubsection{导致程序不一致的具体文字集合}
+\subsection{基于导致不一致文字集合的调试入口推荐算法}
 在上述三种情形的讨论中，已经以非形式化的说明分析了导致三类不同的程序出现不一致的具体文字。与本章开头的结论相一致，两类否定，即强否定与NAF是造成程序不一致的唯一可能原因。下面以定理的方式形式化地给出导致三类程序不一致的文字集合结论，其中第三类程序需要分两种情况讨论，定理的证明见附录。
 
 \begin{theorem}
@@ -95,7 +95,6 @@
 对于前三种情况，推荐用户直接以$INCST$集合中的文字作为调试起点，并利用下文介绍的调试模型进行调试；对于第四种情况，除了给出$INCST$集合外，还将原子-规则图中的相关奇数负环找出，以供用户在调试前对相关规则进行检查，向用户推荐调试入口的过程如算法\ref{alg:dbgetcrcmd}所示。
 
 \begin{algorithm2e}[H]
-    \label{alg:dbgetcrcmd}
     \DontPrintSemicolon
     \SetNoFillComment
     \SetKwInput{Initialization}{初始化}
@@ -103,6 +102,7 @@
     \SetKwInput{KwOut}{输出}
     \setstretch{1.15}
     \caption{获取程序$P$调试的推荐入口}
+    \label{alg:dbgetcrcmd}
     \KwIn{不一致ASP程序$P$}
     \KwOut{文字规则结点集合}
     \setcounter{AlgoLine}{0}
@@ -149,11 +149,11 @@
 可以看到，出现问题是由于$bid(m1, p1, 1)$与$some\_bid(m1, p1)$相互依赖导致的，而实际上$some\_bid$谓词的设立是为了标注“被特别指定了评分的稿件”，这其中不应包含1分的情况，否则根据$r_2$默认为未指定评分的文章赋值为1分后，这些未指定评分的文章由于规则$r_1$再次成为$some\_bid$，违背了这一谓词设立的逻辑初衷。在$r_1$体部添加$X \mathrel{\mathtt{!=}} 1$，程序将会产生正确的结果。不过这一部分修改不是本文研究的内容，因此不在此处赘述。
 \end{example}
 
-\subsection{不一致ASP程序的单步调试模型设计}
+\section{不一致ASP程序的单步调试模型设计}
 在给出了不一致程序的调试入口推荐后，本文介绍不一致ASP单步调试模型的设计。图\ref{fig:dbgpycharm}展示了一个广泛使用的现代IDE（PyCharm）对一个Python程序进行调试的界面，界面中的各个窗口和部件已在图中标明。
 \begin{figure}[t]
     \centering
-    \includegraphics[height=.8\textwidth, valign=c]{figures/现代IDE调试界面.jpg}
+    \includegraphics[height=.5\textwidth, valign=c]{figures/现代IDE调试界面.jpg}
     \caption{PyCharm调试某Python程序的界面}
     \label{fig:dbgpycharm}
 \end{figure}
@@ -168,7 +168,7 @@
 
 解决了这两个问题后，本文通过类比，将ASP程序调试中的各要素与命令式语言调试的各要素进行一一映射，映射的结果如表\ref{tb:elementmap}所示。
 
-\begin{table}[ht!]
+\begin{table}[h!]
     \caption{ASP程序调试与命令式语言调试要素映射表} \label{tb:elementmap}
     \centering
     \renewcommand\arraystretch{2}
@@ -192,7 +192,7 @@
 
     观察表\ref{tb:elementmap}可以发现，用户调试的过程实际上是在没有回答集或回答集不一致的情况下，通过交互对原子-规则图各结点与边进行标签的赋值，以构建部分解释空间，直到发现矛盾的过程，下面给出不一致ASP程序调试模型的定义。下面给出不一致ASP程序调试模型的定义。
     \begin{definition}[]
-        给定一个不一致ASP程序 P，其调试模型$Dbg_{incst}(P, l, S, Q, U)$的输入包含如下五个部分：
+        给定一个不一致ASP程序$P$，其调试模型$Dbg_{incst}(P, l, S, Q, U)$的输入包含如下五个部分：
         \begin{itemize}[topsep=0pt]
             \setlength\itemsep{-0.3em}
             \item 待调试的不一致ASP程序$P$：该程序无变量，回答集为$Lit(P)$或不一致；
@@ -208,9 +208,11 @@
                 \item 当前步骤位于规则结点，该规则结点与多个文字相连接时，用户指定查看规则体部文字的后续推导过程。
             \end{itemize}
         \end{itemize}
+    \end{definition}
         
         该模型的输出如式\eqref{eq:dbgincstmodel}所示。
-        \begin{align}
+        \begin{equation}
+            \label{eq:dbgincstmodel}
             Dbg_{incst}(P, l, s, Q_s, U_s)=
             \begin{cases}
                 \text{文字结点} l &s = 0, Q = f\\
@@ -218,14 +220,13 @@
                 Dbg_{incst}(P, l, s-1, f, U_{s-1}) \cup SubExp(P, s, U_s) &s > 0, Q = f\\
                 \emptyset &\text{否则}
             \end{cases}
-        \end{align}\label{eq:dbgincstmodel}
-    \end{definition}
-    与解释模型类似，式\eqref{eq:dbgincstmodel}中仍然是递归定义的，其最核心的部分是$SubExp(P, s, U_s)$的生成，即用户选择进行下一步调试时所呈现的原子-规则子图。其中$U_s$为用户在第$s$步的交互信息，这一信息被定义为一个四元组$U_s=(UL^{true}_s, UL^{false}_s, UR^{ap}_s, UR^{bl}_s)$，为了便于算法的描述，表\ref{tb:usparameter}给出这一四元组的各元素符号表示及含义。
-
-    \begin{table}[!ht]
+        \end{equation}
+    
+        与解释模型类似，式\eqref{eq:dbgincstmodel}中仍然是递归定义的，其最核心的部分是$SubExp(P, s, U_s)$的生成，即用户选择进行下一步调试时所呈现的原子-规则子图。其中$U_s$为用户在第$s$步的交互信息，这一信息被定义为一个四元组$U_s=(UL^{true}_s, UL^{false}_s, UR^{ap}_s, UR^{bl}_s)$，为了便于算法的描述，表\ref{tb:usparameter}给出这一四元组的各元素符号表示及含义。
+    \begin{table}[H]
         \caption{用户参数$U_s$说明}
         \centering
-        \renewcommand\arraystretch{3}
+        \renewcommand\arraystretch{2.5}
         \begin{tabular}{ccc}
         \toprule \noalign{\vspace{-2ex}}
         符号 & 含义 & 取值说明 \\ \hline
@@ -241,36 +242,101 @@
         \label{tb:usparameter}
         \end{table}
 
-    求解这一子图的过程如算法X所示。
+    求解这一子图的过程如算法\ref{alg:dbgSubExp}所示。
 
     \begin{algorithm2e}[H]
-        \label{alg:dbgSubExp}
         \DontPrintSemicolon
         \SetNoFillComment
         \SetKwInput{Initialization}{初始化}
         \SetKwInput{KwIn}{输入}
         \SetKwInput{KwOut}{输出}
-        \setstretch{1.15}
+        \SetKwRepeat{Do}{do}{while}
+        \setstretch{1.1}
         \caption{程序$P$单步调试子图生成算法}
-        \KwIn{不一致ASP程序$P$，调试步$S$，用户指定的起点文字$l$，用户指定的交互信息$U_s$}
+        \label{alg:dbgSubExp}
+        \KwIn{不一致ASP程序$P$，调试步$s$，用户指定的起点文字$l$，用户指定的交互信息$U_s$}
         \KwOut{单步生成的子图}
         \setcounter{AlgoLine}{0}
         \everypar={\nl}
-        $ARG\_P \gets getARG(P)$ \tcp*[l]{获取程序的原子-规则图}
-        $l \gets getAllNegCycles(ARG\_P)$ \tcp*[l]{获取原子规则图中的所有负环}
-        \tcc{函数c$omputeIncstLitSet$返回程序$P$的不一致情形$incstCond$与导致不一致的集合$incstLit$}
-        $incstCond, incstLit \gets computeIncstLitSet(P)$\;
-        \eIf {$incstCond \mathrel{\mathtt{!=}} neg\_loop$}{
-            \Return $incstLit$
+        \While{用户没有停止程序调试}{
+        $v_{current} \gets \text{步骤s所位于的结点}$\;
+        \eIf {$v_{current} \in V_{Lit}$ \tcp*[l]{当前结点是文字结点}}{
+                \If {$v_{current} \not\in (UL_s^{true} \cup UL_s^{false})$ \tcp*[l]{当前文字结点真值尚未被分配}}{
+                    \eIf {用户指定$v_{current}$真值为真}{
+                        $UL^{true} \gets UL^{true} \cup v_{current}$
+                    }{
+                        $UL^{false} \gets UL^{false} \cup v_{current}$
+                    }
+            }
+
         }
         {
-            $subGraph \gets \emptyset$\;
-            \ForEach{环$n\_cycle$ 在 $P$所有规则}{
-                \If {$n\_cycle \cap incstLit \neq \emptyset$}{
-                $subGraph \gets subGraph \cup n\_cycle$
+            \If {$v_{current} \not\in (UL_s^{ap} \cup UL_s^{bl})$ \tcp*[l]{当前规则结点规则适用性尚未被分配}}{
+                \eIf {用户指定$v_{current}$规则适用}{
+                    $UL^{ap} \gets UL^{ap} \cup v_{current}$
+                    }{
+                        $UL^{bl} \gets UL^{bl} \cup v_{current}$
+                    }
+            }
+
+        }
+        $updateGlobalList(UL^{true},UL^{false},UL^{ap},UL^{bl})$ \tcp*[l]{更新全局文字真值与规则适用性列表}
+        }
+    \end{algorithm2e}
+    
+    其中，函数$updateGlobalList$用于在用户一次交互后更新全局为真、为假、规则适用、规则阻塞列表。需要说明，这一函数除了将用户刚刚指定的交互信息添加进入集合，还将根据用户的反馈自动计算能够确定结点的标签，这一计算的过程如算法\ref{alg:updateGlobalList}所示。
+
+    \begin{algorithm2e}[H]
+        \DontPrintSemicolon
+        \SetNoFillComment
+        \SetKwInput{Initialization}{初始化}
+        \SetKwInput{KwIn}{输入}
+        \SetKwInput{KwOut}{输出}
+        \SetKwRepeat{Do}{do}{while}
+        \setstretch{1.15}
+        \caption{更新全局文字真值与规则适用性列表$updateGlobalList$}
+        \label{alg:updateGlobalList}
+        \KwIn{不一致ASP程序$P$，当前结点$v_{current}$，全局文字真值与规则适用性列表$U_s=(UL^{true}, UL^{false},UL^{ap})$}
+        \KwOut{更新后的全局文字真值与规则适用性列表$U_s$}
+        \setcounter{AlgoLine}{0}
+        \everypar={\nl}
+        \If {$v_{current}$为空}{
+            \Return $U_s$
+        }
+        \If {$v_{current} \in V_{lit}$} {
+            $derived\_rules \gets findRuleWithHead(l)$\;
+            \If {$v_{current} \in UL^{true}$}{
+                \If{$(derived\_rules \cap UL_s^{ap} = \emptyset) \land (||derived\_rules \setminus UL_s^{false}|| = 1)$}{
+                    $set\_ap \gets (derived\_rules \setminus UL_s^{false})$\;
+                    $UL_s^{ap} \gets UL_s^{ap} \cup set\_ap$
                 }
             }
-            \Return $subGraph$
+            \If {$v_{current} \in UL^{false}$}{
+                $UL_s^{bl} \gets UL_s^{bl} \cup derived\_rules$
+            }
+            \ForEach{$rule\_node$在$v_{current}$的邻接结点}{
+                $updateGlobalList(v_{current}, U_s)$
+            }
+        }
+        \If {$v_{current} \in V_{rule}$} {
+            \If {$v_{current} \in UL^{ap}$}{
+                $UL_s^{true} \gets UL_s^{true} \cup body^+(v_{current})$\;
+                $UL_s^{false} \gets UL_s^{false} \cup body^-(v_{current})$\;
+            }
+            \If {$v_{current} \in UL^{bl}$}{
+                $undecided\_lit \gets body(v_{current}) \setminus (UL_s^{true} \cup UL_s^{false})$\;
+                \If{$||undecided\_lit||=1$}{
+                    \eIf{$undecided\_lit \cap body^+(v_{current}) \neq \emptyset$}{
+                        $UL_s^{true} \gets UL_s^{true} \cup undecided\_lit$\;
+                    }{
+                        $UL_s^{false} \gets UL_s^{false} \cup undecided\_lit$\;
+                    }
+                }
+            }
+            \ForEach{$lit\_node$在$v_{current}$的邻接结点}{
+                $updateGlobalList(v_{current}, U_s)$
+            }
         }
     \end{algorithm2e}
 \section{本章小结}
+本章介绍了不一致ASP程序的调试模型。首先介绍并回顾了不一致ASP程序的理论，给出了导致ASP程序不一致的文字集合计算方法，并基于该集合设计了程序调试入口的推荐算法。进一步基于调试入口设计基于解释空间的不一致程序调试模型，重点讨论了在没有回答集及真值的情况下，如何利用解释空间通过调试步骤中的交互，根据用户的反馈引导其发现程序中的错误，最大程度还原了命令式语言的单步调试风格，有效提高了ASP程序的开发效率。
