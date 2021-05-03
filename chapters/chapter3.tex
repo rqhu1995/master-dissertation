@@ -1,10 +1,10 @@
 \chapter{基于用户交互的ASP解释模型的设计}
 针对现有ASP程序解释和调试难以同时满足规模适当与解释清晰完备的问题，本文试图将用户交互引入解释与调试之中。其中，基于用户交互的ASP程序解释模型是调试模型的基础，本章介绍这一模型，主要包括以下几方面内容，首先找到一种合适的ASP程序图表示方法，进一步面向ASP程序的解释对图中的环进行处理，提出ASP程序的解释空间及其构建算法，基于解释空间定义交互解释模型，讨论解释中的用户交互，最后针对非实例化程序的解释，讨论当前实例化工具面向解释存在的问题并给出适当的实例化方案。
 \section{面向解释的ASP程序图表示}
-面向人工智能可解释对易于人接受的要求，结合图对于关联关系直观表达的特性，本文设计基于文字-规则依赖图的方法对ASP程序的解释进行表示。因此，首先需要定义一种面向解释的ASP程序图表示法，该表示法应能够简洁、完整地说明程序中规则和文字之间的依赖关系。第\ref{chp:introsuction}章已有的研究中，已经提出了许多与ASP程序相关的图表示方法，包括依赖图（DG，Denpendency Graph）\cite{apt1994logic}，规则图（RG，Rule Graph）\cite{dimopoulos1996graph}和扩展依赖图（EDG，Extended Dependency Graph）\cite{brignoli2014characterizing}。在交互解释的需求中，尽可能详细地保留与程序相关的所有文字和规则能够为用户提供更丰富、灵活的选择。而上述三种图表示中，只有EDG在表示中既包含程序中的规则又包含程序中的原子。因此，基于EDG的思想，本文定义了一种原子-规则图（ARG，Atom-Rule Graph），这种表示直观地呈现了原子与规则之间的依赖关系。
+面向人工智能可解释对易于人接受的要求，结合图对于关联关系直观表达的特性，本文设计基于文字-规则依赖图的方法对ASP程序的解释进行表示。因此，首先需要定义一种面向解释的ASP程序图表示法，该表示法应能够简洁、完整地说明程序中规则和文字之间的依赖关系。第\ref{chp:introsuction}章已有的研究中，已经提出了许多与ASP程序相关的图表示方法，包括依赖图（DG，Denpendency Graph）\cite{apt1994logic}，规则图（RG，Rule Graph）\cite{dimopoulos1996graph}和扩展依赖图（EDG，Extended Dependency Graph）\cite{brignoli2014characterizing}。在交互解释的需求中，尽可能详细地保留与程序相关的所有文字和规则能够为用户提供更丰富、灵活的选择。而上述三种图表示中，只有EDG在表示中既包含程序中的规则又包含程序中的原子。因此，基于EDG的思想，本文定义了一种文字-规则图（ARG，Atom-Rule Graph），这种表示直观地呈现了原子与规则之间的依赖关系。
 
-\begin{definition}[原子-规则图ARG]
-    给定一个实例化的一致性ASP程序$P$，该程序的原子-规则图ARG（记为$ARG_P$）定义一张图$\langle V, E \rangle $，其中：
+\begin{definition}[文字-规则图ARG]
+    给定一个实例化的一致性ASP程序$P$，该程序的文字-规则图ARG（记为$ARG_P$）定义一张图$\langle V, E \rangle $，其中：
     \begin{itemize}[topsep=0pt]
       \setlength\itemsep{-0.3em}
       \item $V=V_{atom} \cup V_{rule} \cup V_{sink}$表示$ARG_P$中的所有结点组成的集合，其中：
@@ -31,20 +31,20 @@
         \end{tabular*}
     \end{center}
 
-    程序\hyperref[prg:p2]{$P_2$}的原子-规则图$ARG_{P_2}$如图\ref{fig:3_1}(a)所示，作为对比同时展示其对应的扩展依赖图$EDG_{P_2}$，如图\ref{fig:3_1}(b)所示。在图\ref{fig:3_1}(a)中，所有原子结点，规则结点和汇结点分别用圆，长方形和双圆表示。显然，任何程序$P$的ARG都可以通过在EDG中显式地添加规则结点、合并具有相同原子的结点以及标明事实或不可推导原子等结束结点转换而来。显然，与ARG相比，EDG更简洁、紧凑，但是程序中的一些与图相关的语法特性（例如循环），很难在EDG中反映出来，不利于后续对解释的实现，因此本文选用ARG作为ASP程序表示的基础。
+    程序\hyperref[prg:p2]{$P_2$}的文字-规则图$ARG_{P_2}$如图\ref{fig:3_1}(a)所示，作为对比同时展示其对应的扩展依赖图$EDG_{P_2}$，如图\ref{fig:3_1}(b)所示。在图\ref{fig:3_1}(a)中，所有原子结点，规则结点和汇结点分别用圆，长方形和双圆表示。显然，任何程序$P$的ARG都可以通过在EDG中显式地添加规则结点、合并具有相同原子的结点以及标明事实或不可推导原子等结束结点转换而来。显然，与ARG相比，EDG更简洁、紧凑，但是程序中的一些与图相关的语法特性（例如循环），很难在EDG中反映出来，不利于后续对解释的实现，因此本文选用ARG作为ASP程序表示的基础。
 
     \begin{figure}[htbp] 
         \centering 
-        \subfloat[原子-规则图$ARG_{P_2}$]{\includegraphics[height=.35\linewidth]{figures/原子规则图.pdf}} 
+        \subfloat[文字-规则图$ARG_{P_2}$]{\includegraphics[height=.35\linewidth]{figures/原子规则图.pdf}} 
         \quad\quad
         \subfloat[扩展依赖图$EDG_{P_2}$]{\includegraphics[height=.35\linewidth]{figures/依赖图.pdf}} 
         \caption{程序的两种图表示方法示意} 
         \label{fig:3_1} 
     \end{figure}
 \end{example}
-ARG完整地包含了程序规则与文字的语法信息，即文字和规则间的依赖。不过，在进行ASP推理解释的过程中，给定回答集下的规则满足性等语义信息也至关重要。此时，ARG的定义将无法覆盖这些需求，因此，本文在ARG的基础上进一步定义\textbf{扩展原子-规则图}，该图定义在程序$P$与其回答集之一$M$下，将语义信息引入图中。
-\begin{definition}[扩展原子-规则图]
-    给定一个实例化的一致性ASP程序$P$，$P$的一个回答集$M$（$M \in SM(P)$），则程序$P$关于$M$的扩展原子-规则图（记为$ARG^M_P$）定义基于$ARG_P$，在$ARG_P$的基础上作出下列修改：
+ARG完整地包含了程序规则与文字的语法信息，即文字和规则间的依赖。不过，在进行ASP推理解释的过程中，给定回答集下的规则满足性等语义信息也至关重要。此时，ARG的定义将无法覆盖这些需求，因此，本文在ARG的基础上进一步定义\textbf{扩展文字-规则图}，该图定义在程序$P$与其回答集之一$M$下，将语义信息引入图中。
+\begin{definition}[扩展文字-规则图]
+    给定一个实例化的一致性ASP程序$P$，$P$的一个回答集$M$（$M \in SM(P)$），则程序$P$关于$M$的扩展文字-规则图（记为$ARG^M_P$）定义基于$ARG_P$，在$ARG_P$的基础上作出下列修改：
     \begin{itemize}[topsep=0pt]
         \setlength\itemsep{-0.3em}
         \item 对任意的原子结点$v \in V_{atom} \cap M$，为该结点标记``+''；
@@ -61,46 +61,46 @@ ARG完整地包含了程序规则与文字的语法信息，即文字和规则�
         \end{tabular*}
     \end{center}
     
-    程序\hyperref[prg:p3]{$P_3$}的回答集有两个，分别为$M_1=\{s, p\}$, $M_2=\{r\}$。在回答集$M_1$下，$s$与$p$成立，$q$与$r$不在稳定模型中。$r_1$由于$r$不成立，体部满足因此该规则适用，$r_2$由于$s$不成立被阻塞，$r_3$由于$p$成立，体部满足因此该规则适用，$r_4$由于$s$成立，体部满足因此该规则适用。程序\hyperref[prg:p3]{$P_3$}的原子-规则图$ARG_{P_3}$及其在$M_2$下的扩展原子-规则图$ARG_{P_3}^{M_2}$分别如图\ref{fig:3_2}(a)与\ref{fig:3_2}(b)所示。
+    程序\hyperref[prg:p3]{$P_3$}的回答集有两个，分别为$M_1=\{s, p\}$, $M_2=\{r\}$。在回答集$M_1$下，$s$与$p$成立，$q$与$r$不在稳定模型中。$r_1$由于$r$不成立，体部满足因此该规则适用，$r_2$由于$s$不成立被阻塞，$r_3$由于$p$成立，体部满足因此该规则适用，$r_4$由于$s$成立，体部满足因此该规则适用。程序\hyperref[prg:p3]{$P_3$}的文字-规则图$ARG_{P_3}$及其在$M_2$下的扩展文字-规则图$ARG_{P_3}^{M_2}$分别如图\ref{fig:3_2}(a)与\ref{fig:3_2}(b)所示。
     \begin{figure}[htbp] 
         \centering 
-        \subfloat[原子-规则图$ARG_{P_3}$]{\includegraphics[height=.3\textwidth, valign=c]{figures/原子规则图_new.pdf}} 
+        \subfloat[文字-规则图$ARG_{P_3}$]{\includegraphics[height=.3\textwidth, valign=c]{figures/原子规则图_new.pdf}} 
         \quad\quad\quad
-        \subfloat[扩展原子-规则图$ARG^{M_2}_{P_3}$]{\includegraphics[height=.3\textwidth, valign=c]{figures/扩展原子规则图_new.pdf}} 
-        \caption{程序\hyperref[prg:p3]{$P_3$}的原子-规则图与扩展原子-规则图} 
+        \subfloat[扩展文字-规则图$ARG^{M_2}_{P_3}$]{\includegraphics[height=.3\textwidth, valign=c]{figures/扩展原子规则图_new.pdf}} 
+        \caption{程序\hyperref[prg:p3]{$P_3$}的文字-规则图与扩展文字-规则图} 
         \label{fig:3_2} 
     \end{figure}
 \end{example}
-直观上，给定一个ASP程序及其回答集$M$，可以考虑通过对其进行子图提取，以待解释的文字结点为起点对其扩展文字依赖图$ARG_{P}^{M}$进行遍历，找出与该文字相关的全部相关的规则结点、文字结点以及它们之间语法与语义的依赖关系。例如，对于程序\hyperref[prg:p2]{$P_2$}及其回答集$\{q\}$，解释$q$在回答集中可以用这种方法很清晰地展现，如图\ref{fig:3_3}(a)紫色线路所示。然而，当图中出现环时，将可能出现无限解释，如图\ref{fig:3_3}(b)中对$s$在回答集中的解释（蓝色与橘黄色线路）。这样的循环解释虽然真实呈现了程序中的语法和语义信息，但无法满足对“人可接受”的要求。因此，有必要对扩展原子-规则图中的环进行处理。
+直观上，给定一个ASP程序及其回答集$M$，可以考虑通过对其进行子图提取，以待解释的文字结点为起点对其扩展文字依赖图$ARG_{P}^{M}$进行遍历，找出与该文字相关的全部相关的规则结点、文字结点以及它们之间语法与语义的依赖关系。例如，对于程序\hyperref[prg:p2]{$P_2$}及其回答集$\{q\}$，解释$q$在回答集中可以用这种方法很清晰地展现，如图\ref{fig:3_3}(a)紫色线路所示。然而，当图中出现环时，将可能出现无限解释，如图\ref{fig:3_3}(b)中对$s$在回答集中的解释（蓝色与橘黄色线路）。这样的循环解释虽然真实呈现了程序中的语法和语义信息，但无法满足对“人可接受”的要求。因此，有必要对扩展文字-规则图中的环进行处理。
 \begin{figure}[htbp] 
     \centering 
-    \subfloat[原子-规则图$ARG_{P_2}^{\{p, q\}}$]{\includegraphics[height=.35\textwidth, valign=c]{figures/扩展原子规则图.jpg}} 
+    \subfloat[文字-规则图$ARG_{P_2}^{\{p, q\}}$]{\includegraphics[height=.35\textwidth, valign=c]{figures/扩展原子规则图.jpg}} 
     \quad\quad
-    \subfloat[扩展原子-规则图$ARG^{\{r\}}_{P_3}$]{\includegraphics[height=.35\textwidth, valign=c]{figures/扩展原子规则图_new.pdf}} 
-    \caption{程序\hyperref[prg:p3]{$P_3$}的原子-规则图与扩展原子-规则图} 
+    \subfloat[扩展文字-规则图$ARG^{\{r\}}_{P_3}$]{\includegraphics[height=.35\textwidth, valign=c]{figures/扩展原子规则图_new.pdf}} 
+    \caption{程序\hyperref[prg:p3]{$P_3$}的文字-规则图与扩展文字-规则图} 
     \label{fig:3_3} 
 \end{figure}
-\section{ASP扩展原子-规则图的环处理}
-为了处理扩展原子-规则图中的环，首先给出扩展原子-规则图中环的形式化定义。
-\begin{definition}[扩展原子-规则图中的环]
+\section{ASP扩展文字-规则图的环处理}
+为了处理扩展文字-规则图中的环，首先给出扩展文字-规则图中环的形式化定义。
+\begin{definition}[扩展文字-规则图中的环]
     给定一个实例化的一致性ASP程序$P$及$P$的一个回答集$M \in SM(P)$，$P$在$M$下的扩展原子图$ARG_P^M= \langle V, E \rangle$中的一条非空路径$e_1, e_2, \ldots, e_n, (e_i \in E)$对应的顶点序列为$v_1, v_2, \ldots, v_n, v_1$，其中$e_i (1 \le i \le n-1)$是从$v_i$指向$v_{i+1}$的有向边，$e_n$是从$v_n$指向$v_1$的有向边。若$\forall i \neq j \in 1 \ldots n, v_i \neq v_j$，则称该路径为$ARG_P^M$中的环，记为$cyc(P,M)$，表示为$v_1 \rightarrow v_2 \rightarrow \ldots v_{n-1} \rightarrow v_n \rightarrow v_1$。如不做特别说明，本文使用$cyc(P,M)$表示$ARG_P^M$中的一个环，必要时对一张图内不同的环使用下标加以区分。对任意的环$cyc_i(P,M)$，如果其中的所有规则依赖边均标记为“+”，称这样的环为\textbf{正环}，将其记作$cyc_i^+(P,M)$，否则称为\textbf{负环}，记作$cyc_i^-(P,M)$。
 \end{definition}
 
-\begin{example}[扩展原子-规则图中的环]
-    如图\ref{fig:3_3}(b)所示，程序\hyperref[prg:p3]{$P_3$}关于回答集$\{r\}$的扩展原子-规则图中有两个环：负环$s^+ \rightarrow r_1 \rightarrow r^- \rightarrow r_2 \rightarrow s^+$与正环$s^+ \rightarrow r_3 \rightarrow p^+ \rightarrow r_4 \rightarrow s^+$。
+\begin{example}[扩展文字-规则图中的环]
+    如图\ref{fig:3_3}(b)所示，程序\hyperref[prg:p3]{$P_3$}关于回答集$\{r\}$的扩展文字-规则图中有两个环：负环$s^+ \rightarrow r_1 \rightarrow r^- \rightarrow r_2 \rightarrow s^+$与正环$s^+ \rightarrow r_3 \rightarrow p^+ \rightarrow r_4 \rightarrow s^+$。
 \end{example}
 
 为了避免由于环而带来的无限解释，需要为每一个环找到一个不在环中的结点相连，这样的结点称为环的\textbf{出口}，其形式化定义如下：
 
-\begin{definition}[扩展原子-规则图环出口]
-    给定一个实例化一致性ASP程序$P$及$P$的一个回答集$M \in SM(P)$，$cyc(P, M)$是其扩展原子-规则图的一个环。对$v_e \in V \setminus cyc(P, M)$，若$\exists v_i \in cyc(P,M), e_i=(v_i, v_e) \in E$且$\exists v_s \in V_{sink}, v_e$可达$v_s$，则$v_e$是$cyc(P, M)$的一个出口。
+\begin{definition}[扩展文字-规则图环出口]
+    给定一个实例化一致性ASP程序$P$及$P$的一个回答集$M \in SM(P)$，$cyc(P, M)$是其扩展文字-规则图的一个环。对$v_e \in V \setminus cyc(P, M)$，若$\exists v_i \in cyc(P,M), e_i=(v_i, v_e) \in E$且$\exists v_s \in V_{sink}, v_e$可达$v_s$，则$v_e$是$cyc(P, M)$的一个出口。
 \end{definition}
 
-\begin{example}[扩展原子-规则图环出口]
-    如图\ref{fig:3_3}所示，程序\hyperref[prg:p2]{$P_2$}关于回答集$\{p, q\}$的扩展原子-规则图中的正环$q^+ \rightarrow r_1 \rightarrow p^+ \rightarrow r_2 \rightarrow q^+$有一个$r_3$结点为出口，而程序\hyperref[prg:p3]{$P_3$}关于回答集$\{r\}$的负环$s^+ \rightarrow r_1 \rightarrow r^- \rightarrow r_2 \rightarrow s^+$与正环$s^+ \rightarrow r_3 \rightarrow p^+ \rightarrow r_4 \rightarrow s^+$没有出口。
+\begin{example}[扩展文字-规则图环出口]
+    如图\ref{fig:3_3}所示，程序\hyperref[prg:p2]{$P_2$}关于回答集$\{p, q\}$的扩展文字-规则图中的正环$q^+ \rightarrow r_1 \rightarrow p^+ \rightarrow r_2 \rightarrow q^+$有一个$r_3$结点为出口，而程序\hyperref[prg:p3]{$P_3$}关于回答集$\{r\}$的负环$s^+ \rightarrow r_1 \rightarrow r^- \rightarrow r_2 \rightarrow s^+$与正环$s^+ \rightarrow r_3 \rightarrow p^+ \rightarrow r_4 \rightarrow s^+$没有出口。
 \end{example}
 
-通过对扩展原子-规则的环及环的出口的定义，可以发现没有出口的环才是导致无限解释出现的根本原因。针对这一问题，本文进一步考虑对无出口环的处理。
+通过对扩展文字-规则的环及环的出口的定义，可以发现没有出口的环才是导致无限解释出现的根本原因。针对这一问题，本文进一步考虑对无出口环的处理。
 \subsection{无出口负环处理}
 首先，考虑负环的处理。Pontelli等人在离线解释的研究中发现，对于任意一个ASP程序$P$，其回答集$M$由集合$NANT(P) \setminus (WF^+_P \cup WF^-_P)$中元素的真值唯一决定\cite{pontelli2006justifications}，其中$WF^+_P$与$WF^-_P$为程序$P$的良基模型，$NANT(P)=\{b \in At \mid \exists r \in P, s.t.\ b \in body^-(r)\}$，即程序P中所有规则负体部原子构成的集合。在离线解释的研究中，Pontelli等人提出引理如下\cite{pontelli2009justifications}：
 \begin{lemma}
@@ -158,13 +158,13 @@ ARG完整地包含了程序规则与文字的语法信息，即文字和规则�
         \label{fig:3_4}
     \end{figure}
     
-    下面考虑该程序在两个回答集下扩展的原子-规则图$ARG^{M_1}_{P_4}$与$ARG^{M_2}_{P_4}$，如图\ref{fig:3_5}(a)与图\ref{fig:3_5}(b)所示。可以看到，在良基模型之外的$b$与$c$在稳定语义模型下通过多个回答集进行了不同的赋值，紫色路径形成的负环中包含了$b$与$c$两个原子，当$b$或$c$中任意一个原子的真值确定后，回答集也唯一确定。
+    下面考虑该程序在两个回答集下扩展的文字-规则图$ARG^{M_1}_{P_4}$与$ARG^{M_2}_{P_4}$，如图\ref{fig:3_5}(a)与图\ref{fig:3_5}(b)所示。可以看到，在良基模型之外的$b$与$c$在稳定语义模型下通过多个回答集进行了不同的赋值，紫色路径形成的负环中包含了$b$与$c$两个原子，当$b$或$c$中任意一个原子的真值确定后，回答集也唯一确定。
     \begin{figure}[htbp]
         \centering 
-        \subfloat[扩展原子-规则图$ARG_{P_4}^{\{a,e,f,c\}}$]{\includegraphics[height=.4\textwidth, valign=c]{figures/p4arg_m1.jpg}} 
+        \subfloat[扩展文字-规则图$ARG_{P_4}^{\{a,e,f,c\}}$]{\includegraphics[height=.4\textwidth, valign=c]{figures/p4arg_m1.jpg}} 
         \quad\quad
-        \subfloat[扩展原子-规则图$ARG_{P_4}^{\{a,e,f,b\}}$]{\includegraphics[height=.4\textwidth, valign=c]{figures/p4arg_m2.jpg}} 
-        \caption{程序\hyperref[prg:p3]{$P_3$}的原子-规则图与扩展原子-规则图} 
+        \subfloat[扩展文字-规则图$ARG_{P_4}^{\{a,e,f,b\}}$]{\includegraphics[height=.4\textwidth, valign=c]{figures/p4arg_m2.jpg}} 
+        \caption{程序\hyperref[prg:p3]{$P_3$}的文字-规则图与扩展文字-规则图} 
         \label{fig:3_5}
     \end{figure}
     
@@ -185,13 +185,13 @@ ARG完整地包含了程序规则与文字的语法信息，即文字和规则�
         \begin{figure}[!h]
             \centering 
             \includegraphics[height=.4\textwidth, valign=c]{figures/argp5m1.jpg}
-            \caption{程序\hyperref[prg:p_5]{$P_5$}的扩展原子-规则图$ARG^{M_1}_{P_5}$}
+            \caption{程序\hyperref[prg:p_5]{$P_5$}的扩展文字-规则图$ARG^{M_1}_{P_5}$}
             \label{fig:3_6}
         \end{figure}
     \end{example}
     事实上，上述研究展现了程序中负环的出现，是由于某些原子真值的不确定性。在二值逻辑下的稳定语义模型中，每个原子的真值或为真或为假，因此得到回答集的过程是一种固有的“猜测-验证”（Guess and Check）的过程\cite{eiterASP2009}。而通过上述$ASM$集合的定义，为找到这些原子提供了一种形式化的计算方法，同时也能够将集合中的原子为假归因于这一假设，从而不再由于负环中原子间的相互依赖而产生循环解释。
 \subsection{无出口正环处理}
-    解决了负环处理的问题后，本文接着对扩展原子-规则图中的正环特性进行研究。对无出口正环的分析基于Lin与Zhao等人提出的逻辑程序环公式\cite{lin2004assat}，将其定义推广到扩展原子-规则图下。
+    解决了负环处理的问题后，本文接着对扩展文字-规则图中的正环特性进行研究。对无出口正环的分析基于Lin与Zhao等人提出的逻辑程序环公式\cite{lin2004assat}，将其定义推广到扩展文字-规则图下。
 
 \begin{definition}[正环的外部支持]
     给定一个实例化一致性ASP程序$P$及$P$的一个回答集$M \in SM(P)$，对$ARG^M_P$中任意的正环$cyc^+(P, M)$，记$ES_P(cyc^+(P, M))$为$cyc^+(P, M)$在程序$P$与回答集$M$下的外部支持，$EB_P(cyc^+(P, M))$为$cyc^+(P, M)$在程序$P$与回答集$M$下的外部体部集，定义如下：
@@ -224,7 +224,7 @@ ARG完整地包含了程序规则与文字的语法信息，即文字和规则�
 
 \section{ASP程序解释空间及其构建算法设计}
 \subsection{ASP程序解释空间定义}
-在处理完程序中的没有出口的正环与负环后，本文对扩展原子-规则图$ARG$进一步改进，提出ASP程序的解释空间（Explanation Universe，EU），具体定义如下：
+在处理完程序中的没有出口的正环与负环后，本文对扩展文字-规则图$ARG$进一步改进，提出ASP程序的解释空间（Explanation Universe，EU），具体定义如下：
 \begin{definition}[ASP程序解释空间]
     给定一个一致的ASP程序$P$及其一个回答集$M \in SM(P)$，程序$P$在$M$下的解释空间基于$ARG^P_M$定义，在其基础上作出如下修改：
     \begin{itemize}[topsep=0pt]
@@ -521,4 +521,4 @@ ARG完整地包含了程序规则与文字的语法信息，即文字和规则�
 
 
     \section{本章小结}
-    为了给出一个用户可接受且清晰完整的ASP回答集文字的解释，本章提出了一个基于用户交互的ASP程序解释模型并给出其构建算法。为了构建这一模型，首先对已有工作进行改进，找到了一种合适的ASP程序图表示方法——扩展原子-规则图，然后重点对图中的环进行处理，以得到ASP程序的解释空间并给出其构建算法；进一步，基于解释空间形式化定义交互解释模型并探究用户交互解释的过程，最后针对非实例化程序，研究当前实例化工具在进行解释任务中存在的局限性，通过元编程的方法给出面向解释的ASP程序实例化方案。
+    为了给出一个用户可接受且清晰完整的ASP回答集文字的解释，本章提出了一个基于用户交互的ASP程序解释模型并给出其构建算法。为了构建这一模型，首先对已有工作进行改进，找到了一种合适的ASP程序图表示方法——扩展文字-规则图，然后重点对图中的环进行处理，以得到ASP程序的解释空间并给出其构建算法；进一步，基于解释空间形式化定义交互解释模型并探究用户交互解释的过程，最后针对非实例化程序，研究当前实例化工具在进行解释任务中存在的局限性，通过元编程的方法给出面向解释的ASP程序实例化方案。

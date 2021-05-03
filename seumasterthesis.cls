@@ -50,6 +50,7 @@
 %% ----------------------------------------------------------------------------
 %%                          Font and Font Size
 %% ----------------------------------------------------------------------------
+\RequirePackage{tocbibind}
 
 %% Font
 \RequirePackage[font=small]{caption}
@@ -234,7 +235,6 @@
 %% ----------------------------------------------------------------------------
 %%                          Algorithm Settings
 %% ----------------------------------------------------------------------------
-
 \RequirePackage{algorithm}
 \RequirePackage[ruled,linesnumbered,vlined,algo2e]{algorithm2e}
 \RequirePackage{algpseudocode}
@@ -936,7 +936,7 @@
     \begin{center}
         \xiaochuhao
         \includegraphics[height=0.63in]{figures/defined/seu-text-logo.png}\\
-        \includegraphics[scale=0.35]{figures/defined/master.png}
+        \includegraphics[scale=0.35]{figures/defined/master-engineer.png}
 
         %% Thesis title
         \vspace{40pt}
@@ -1013,7 +1013,7 @@
                 A Thesis Submitted to
             }\\
             {\universitynameeng}\\
-            {For the Academic Degree of \@degreetypeen}\\
+            {For the Professional Degree of \@degreetypeen}\\
 
             %% Author
             {\vspace{0.5in}}
@@ -1112,7 +1112,7 @@
     \iffigurelist
         \cleardoublepage
         \phantomsection
-        \addcontentsline{toc}{chapter}{\listfigurename}
+        % \addcontentsline{toc}{chapter}{\listfigurename}
         \listoffigures
     \fi
 
@@ -1120,7 +1120,7 @@
     \iftablelist
         \cleardoublepage
         \phantomsection
-        \addcontentsline{toc}{chapter}{\listtablename}
+        % \addcontentsline{toc}{chapter}{\listtablename}
         \listoftables
     \fi
 
@@ -1169,7 +1169,7 @@
     \bibliographystyle{seumasterthesis}
     \cleardoublepage
     \phantomsection
-    \addcontentsline{toc}{chapter}{\bibname}
+    % \addcontentsline{toc}{chapter}{\bibname}
     \bibliography{#1}
 }
 

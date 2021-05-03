@@ -3,25 +3,23 @@
 
 回答集编程（Answer Set Programming，ASP）是一种声明型的编程语言，主要面向复杂的搜索问题求解。ASP程序非单调推理能力较强，因此在知识密集型应用中被广泛使用。从语法上来看，ASP程序由若干条规则组成，求解问题的推理结果不受程序中规则存放的先后顺序以及规则体中谓词存放顺序的影响，作为声明型的编程方法，ASP程序不仅表示直观、符合人们自然表达的习惯，而且可扩展性较强。从语义上来看，ASP程序以回答集语义为基础，适用于常识推理和问题建模。回答集语义的理论基础是1988年Lifschitz和Gelfond提出的经典逻辑程序的稳定模型语义（Stable Model Semantics）\cite{1992The}，随后他们在该模型语义的基础上进一步扩展，推广到包含弱否定（Weak Negation）和强否定（Strong Negation）的析取逻辑程序语言中，并将稳定模型语义改名为回答集语义。在应用上来看，ASP语言简洁并且表达能力强，已经广泛应用于多种场景中，包括规划诊断\cite{2002Answer}、偏好处理\cite{2003A}、生物医学网络推理\cite{2006Modelling}等领域。
 
-本节将分别介绍ASP程序的语法、ASP程序的语义和相关的ASP求解器。
+本章将分别介绍ASP程序的语法、ASP程序的语义和相关的ASP求解器。
 \section{ASP程序的语法}
-项（terms）是ASP中最基本的元素，项可以是变量、常量或函数。变量是以大写字母为开头的字符串（如Human、Animal）。常量是符号常量或者数字（如25、c）。函数通常包含函数符号和若干参数，其形式为$f(t_{1},...,t_n )$，函数中的参数也是项。若项中不存在函数符号与变量，则称该项为实例化项，否则称该项为非实例化项。
+项（terms）是ASP中最基本的元素，项可以是变量、常量或函数。变量是以大写字母为开头的字符串（如Human、Animal）。常量是符号常量或者数字（如25、c）。函数通常包含函数符号和若干参数，其形式为$f(t_1,\ldots,t_n)$，函数中的参数也是项。若项中不存在函数符号与变量，则称该项为实例化项，否则称该项为非实例化项。
 
-原子（atom）包括谓词和项，例如$p(t_1,...,t_n )$，$p$为该$n$元谓词的符号，$t_{1},...,t_n$ $(n \geq 0)$为项，$n$为0时谓词后面的括号可以省略。原子可以表示不同项之间的关系。例如：$bird(dove)$、$friend(tom, jerry)$、$today\_rain$，分别表示鸽子是鸟、tom和jerry是朋友以及今天下雨。如果原子中的每一项都是实例化的，则该原子是实例化原子，否则，该原子是非实例化的原子。例如，$bird(dove)$是实例化原子，$friend(X,tom)$是非实例化原子。
-
-文字（literal）可以是原子$p(t_{1},...,t_n )$，也可以是原子的否定形式$\neg p(t_{1},...,t_n )$。正文字（positive literal）形如$p(t_{1},...,t_n )$，负文字（negative literal）形如$\neg p(t_{1},...,t_n )$。若文字对应的原子是实例化的，则称该文字是实例化的。
-\begin{definition}[规则]规则r是具有如下形式的式子：
+原子（atom）有谓词和项共同组成，形如$p(t_1,\ldots,t_n)$。其中，$p$为$n$元谓词的标识符，$t_1,\ldots,t_n(n \geq 0)$为项，$n$为$0$时谓词后的括号可省略。原子用于表示不同项之间的关系，例如：$bird(dove)$、$friend(tom, jerry)$、$today\_rain$，分别表示鸽子是鸟、tom和jerry是朋友以及今天下雨。如果原子中的每一项都是实例化的，则该原子是实例化原子，否则，该原子是非实例化的原子。例如，$bird(dove)$是实例化原子，$friend(X,tom)$是非实例化原子。原子$p(t_1,\ldots,t_n)$的强否定形式为$\lnot p(t_1,\ldots,t_n)$，$\lnot$是经典逻辑中的否定，$\lnot p(t_1,\ldots,t_n)$表示各项$t_i(1 \le i \le n)$不符合$p$所描述的关系，$\lnot \lnot a = a$，与经典逻辑中的排中律相同。文字（literal）可以是原子$p(t_{1},\ldots,t_n )$，也可以是原子的强否定形式$\neg p(t_{1},\ldots,t_n )$。若文字对应的原子是实例化的，则称该文字是实例化的。
+\begin{definition}[规则]规则$r$是具有如下形式的式子：
     \begin{align}
         \label{rule:1}
-        r: l_0\ or\ ... or\ l_m\leftarrow l_{m+1}, ..., l_n, not\ l_{n+1}, ..., not\ l_p.
+        l_0 \lor \ldots \lor l_m \leftarrow l_{m+1}, \ldots, l_n, not\ l_{n+1}, \ldots, not\ l_p.
     \end{align}
 \end{definition}
-其中$p > n > m \geq 0$，$l_i$代表文字（literal），$not$代表新的逻辑连接符，通常称作缺省否定（default negation）或者失败即否定（Negation As Failure，NAF），又叫做弱否定，$not \ l_i$被读作“没有理由相信$l_i$为真”，但是这并不说明$l_i$为假。规则$r$读作“如果相信$l_{m+1}, ..., l_n$为真，并且没有理由相信$l_{n+1}, ..., l_p$为真，则相信$l_0\ or\ ... or\ l_m$为真”。
+其中$p > n > m \geq 0$，$l_i$代表文字，$not$为新的逻辑连接符，通常称作缺省否定（default negation）或者失败即否定（Negation As Failure，NAF），又叫做弱否定，$not \ l_i$被读作“没有理由相信$l_i$为真”，但是这并不说明$l_i$为假。对ASP程序而言，$not\ not\ a$不与$a$等价。规则$r$读作“如果相信$l_{m+1}, \ldots, l_n$为真，并且没有理由相信$l_{n+1}, \ldots, l_p$为真，则相信$l_0\ or\ \ldots or\ l_m$为真”。
 
-规则$r$左侧的文字是规则的头部，可以表示为$head(r)=\{l_0,...,l_m\}$。规则$r$右侧的文字是规则的体部，可以表示为$body(r)=\{l_{m+1}, ..., l_n,not \ l_{n+1},...,not \ l_p \}$,规则的体部可以细分为正体部与负体部，正体部表示为$body^+(r)=\{l_{m+1}, ..., l_n\}$，负体部表示为$body^-(r)=\{l_{n+1}, ..., l_p \}$。规则r可以表示为：
+规则$r$左侧的文字是规则的头部，可以表示为$head(r)=\{l_0,\ldots,l_m\}$。规则$r$右侧的文字是规则的体部，可以表示为$body(r)=\{l_{m+1}, \ldots, l_n,not\ l_{n+1},\ldots,not \ l_p \}$,规则的体部可以细分为正体部与负体部，正体部表示为$body^+(r)=\{l_{m+1}, \ldots, l_n\}$，负体部表示为$body^-(r)=\{l_{n+1}, \ldots, l_p \}$。规则r可以表示为：
 \begin{align}
     \label{rule:2}
-    r: head(r)\leftarrow body^+(r) , \ not \ body^-(r).
+    head(r)\leftarrow body^+(r),not\ body^-(r).
 \end{align}
 一个ASP程序是有限条\eqref{rule:1}所示的规则组成的集合。
 
@@ -33,7 +31,7 @@
 \end{enumerate}
 
 根据公式\eqref{rule:1}，规则可以分为正规规则、缺省规则和严格规则。
-\begin{definition}[正规规则]当规则r中$|head(r) \ |\ =1$时,规则被称为正规规则。
+\begin{definition}[正规规则]当规则r中$|head(r)|=1$时,规则被称为正规规则。
 \end{definition}
 \begin{definition}[缺省规则]当规则r中$body(r)^- \neq \emptyset$时,规则被称为缺省规则。
 \end{definition}
